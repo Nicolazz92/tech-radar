@@ -2,7 +2,7 @@
 
 Two modes (see config.ranker.mode):
 - "mock":       deterministic heuristic, no external calls, $0. Default.
-- "openrouter": real qwen-turbo batch call via OpenRouter HTTP API.
+- "openrouter": real LLM batch call via OpenRouter HTTP API.
 
 Mock keeps prototype runnable offline and gives stable output for verification.
 The two modes return identical record shapes so swapping is one config flip.
@@ -178,7 +178,7 @@ def score_openrouter(items, cfg):
             "code_context": it.get("code_context") or "",
         })
     body = json.dumps({
-        "model": cfg.get("model", "qwen/qwen-turbo"),
+        "model": cfg.get("model", "qwen/qwen3-235b-a22b-2507"),
         "messages": [
             {"role": "system", "content": _PROMPT_SYS_RU},
             {"role": "user", "content": "Score these debt items. JSON array only.\n\n" + json.dumps(payload, ensure_ascii=False, indent=1)},

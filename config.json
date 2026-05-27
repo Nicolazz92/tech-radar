@@ -3,13 +3,13 @@
   "ranker": {
     "_doc": "LLM-ranker config. Set 'mode': 'mock' (deterministic heuristic) or 'openrouter' (real call).",
     "mode": "mock",
-    "model": "qwen/qwen-turbo",
+    "model": "qwen/qwen3-235b-a22b-2507",
     "openrouter_url": "https://openrouter.ai/api/v1/chat/completions",
     "rank_prompt_language": "ru",
     "batch_size": 20,
     "max_cost_usd": 0.5,
-    "price_in_per_m": 0.033,
-    "price_out_per_m": 0.13
+    "price_in_per_m": 0.071,
+    "price_out_per_m": 0.10
   },
   "scan": {
     "_doc": "Inline-marker scanner: which markers + excluded paths.",

@@ -11,6 +11,9 @@ services:
       # Optional. If unset, switching the UI toggle to "openrouter" will refuse.
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
       - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+      # Flush python stdout so `docker logs` shows print() output in real time
+      # (block-buffering is the default when stdout isn't a TTY).
+      - PYTHONUNBUFFERED=1
     volumes:
       # Persist scored inventory + reports between restarts.
       - radar-state:/app/state
