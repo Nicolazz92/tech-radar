@@ -13,6 +13,12 @@ RUN apt-get update \
 
 # Run as non-root.
 RUN useradd -m -u 1000 radar
+
+# Create /app and chown it BEFORE WORKDIR/COPY/USER. Critical: WORKDIR creates
+# missing parent dirs as root, and --chown on COPY only sets ownership of the
+# copied files, not the destination directory. Without this, radar user can't
+# create new files in /app (e.g. write inventory.json from a refresh call).
+RUN mkdir -p /app && chown radar:radar /app
 WORKDIR /app
 
 # Copy source (see .dockerignore for what is excluded).
@@ -21,8 +27,9 @@ COPY --chown=radar:radar . /app/
 USER radar
 
 # Pre-generate demo inventory so the first /api/state has data and the UI
-# isn't empty on first run. Skipped if the cwd already has a fresh one.
-RUN python radar.py --demo --top-n 30 || true
+# isn't empty on first run. Now strict: any failure here fails the build —
+# that's the point, we want it visible.
+RUN python radar.py --demo --top-n 30
 
 EXPOSE 8080
 
