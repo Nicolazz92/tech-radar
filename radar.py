@@ -54,6 +54,12 @@ def _serve_ui(port):
 
     cfg_path = ROOT / "config.json"
 
+    # Single-flight lock for /api/refresh — without this, concurrent refresh
+    # calls race on writing inventory.json (the latter writer wins, the
+    # earlier writer's pipeline work is lost).
+    import threading
+    _refresh_lock = threading.Lock()
+
     def _state_payload():
         try:
             cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
@@ -138,26 +144,37 @@ def _serve_ui(port):
             if path == "/api/refresh":
                 # By default refresh re-runs on the bundled demo inventory (fast, no
                 # network). Pass {"full": true} to run the full pipeline (clone + grep
-                # + GitHub fetch + LLM) — slow.
+                # + GitHub fetch + LLM) — slow. Pass {"fresh": true} to ignore caches.
                 full = bool(body.get("full"))
+                fresh = bool(body.get("fresh"))
                 cmd = [sys.executable, str(ROOT / "radar.py")]
                 if not full:
                     cmd.append("--demo")
-                # Don't capture — let stdout/stderr stream to the parent process
-                # (which docker logs picks up). Subprocess prints batch progress
-                # in real time; on error the user just runs `docker logs tech-radar`.
-                print(f"[refresh] running: {' '.join(cmd)}", flush=True)
-                try:
-                    proc = subprocess.run(cmd, cwd=str(ROOT), timeout=900)
-                except subprocess.TimeoutExpired:
-                    return self._send_json(500, {"error": "pipeline timeout (>15min)"})
-                if proc.returncode != 0:
-                    return self._send_json(500, {
-                        "error": "pipeline failed",
-                        "code": proc.returncode,
-                        "hint": "check `docker logs tech-radar` for subprocess stderr",
+                if fresh:
+                    cmd.append("--fresh")
+
+                # Single-flight guard: refuse a parallel refresh, return 409.
+                # Without this, two concurrent refreshes race on inventory.json.
+                if not _refresh_lock.acquire(blocking=False):
+                    return self._send_json(409, {
+                        "error": "refresh already running",
+                        "hint": "wait for current refresh to finish",
                     })
-                return self._send_json(200, _state_payload())
+                try:
+                    print(f"[refresh] running: {' '.join(cmd)}", flush=True)
+                    try:
+                        proc = subprocess.run(cmd, cwd=str(ROOT), timeout=900)
+                    except subprocess.TimeoutExpired:
+                        return self._send_json(500, {"error": "pipeline timeout (>15min)"})
+                    if proc.returncode != 0:
+                        return self._send_json(500, {
+                            "error": "pipeline failed",
+                            "code": proc.returncode,
+                            "hint": "check `docker logs tech-radar` for subprocess stderr",
+                        })
+                    return self._send_json(200, _state_payload())
+                finally:
+                    _refresh_lock.release()
 
             return self._send_json(404, {"error": "not found", "path": path})
 
@@ -418,8 +435,13 @@ def main():
             print("  -", v)
         return 2
 
-    (ROOT / "inventory.json").write_text(
+    # Atomic write: tmp file in same dir + rename. Two concurrent refreshes
+    # used to race and produce a truncated/half-written inventory.json.
+    inv_path = ROOT / "inventory.json"
+    tmp_path = inv_path.with_suffix(".tmp")
+    tmp_path.write_text(
         json.dumps(inv, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp_path.replace(inv_path)
     md, csv_text = render.write_outputs(inv, ROOT, top_n=top_n)
 
     print()
