@@ -65,11 +65,12 @@ def _next_url(link_header):
     return None
 
 
-def _fetch_paged(repo, labels, per_page, token):
+def _fetch_one_label(repo, label, per_page, token):
+    """Paginate issues for ONE label (or no label = all open issues)."""
     owner, name = repo.split("/", 1)
     params = {"state": "open", "per_page": str(per_page)}
-    if labels:
-        params["labels"] = ",".join(labels)
+    if label:
+        params["labels"] = label
     url = f"{_API_BASE}/repos/{owner}/{name}/issues?{urllib.parse.urlencode(params)}"
     out = []
     while url:
@@ -82,6 +83,31 @@ def _fetch_paged(repo, labels, per_page, token):
             out.append(it)
         url = _next_url(link)
     return out
+
+
+def _fetch_paged(repo, labels, per_page, token):
+    """Fetch open issues matching ANY of the labels (OR-semantics).
+
+    Critical: GitHub API's `labels=A,B,C` does an AND (issue must have ALL
+    labels) — not OR. To get "any of these labels", we paginate per-label
+    and merge by issue id.
+    """
+    if not labels:
+        return _fetch_one_label(repo, None, per_page, token)
+    seen = {}
+    for label in labels:
+        try:
+            issues = _fetch_one_label(repo, label, per_page, token)
+        except (urllib.error.HTTPError, urllib.error.URLError) as e:
+            # 404 on unknown label is fine — repo simply doesn't use it. Other
+            # errors (rate limit, 5xx) we skip and continue with remaining labels.
+            print(f"[fetch] {repo} label='{label}': {type(e).__name__} — skipping this label")
+            continue
+        for it in issues:
+            iid = it.get("id")
+            if iid is not None:
+                seen[iid] = it
+    return list(seen.values())
 
 
 def fetch_for_repo(repo, cfg, cache_root, fresh=False):

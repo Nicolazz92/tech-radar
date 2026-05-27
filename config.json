@@ -35,13 +35,18 @@
     "code_context_lines": 25
   },
   "github": {
-    "_doc": "GitHub API: labels of interest + per-issue cache TTL.",
+    "_doc": "GitHub API: labels of interest + per-issue cache TTL. NB: matched with OR-semantics — issue passes if it has ANY of these labels.",
     "labels": [
       "tech-debt",
       "technical-debt",
       "refactor",
       "cleanup",
-      "code-quality"
+      "code-quality",
+      "chore",
+      "type/cleanup",
+      "type/tech-debt",
+      "type/refactor",
+      "area/refactor"
     ],
     "issues_cache_ttl_hours": 24,
     "per_page": 100
