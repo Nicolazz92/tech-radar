@@ -89,6 +89,12 @@ html, body {
   position: relative;
 }
 
+.tip-wrap {
+  position: relative;
+  display: inline-block;
+  margin-left: 6px;
+}
+
 .info-tip {
   display: inline-flex;
   align-items: center;
@@ -104,8 +110,8 @@ html, body {
   font-family: inherit;
   cursor: help;
   padding: 0;
-  margin-left: 4px;
   transition: color 120ms, border-color 120ms;
+  vertical-align: middle;
 }
 
 .info-tip:hover,
@@ -118,7 +124,7 @@ html, body {
 .tip-popover {
   position: absolute;
   top: calc(100% + 8px);
-  right: 0;
+  right: -4px;
   min-width: 420px;
   max-width: 520px;
   background: var(--bg-elev2);
@@ -136,9 +142,8 @@ html, body {
   font-weight: normal;
 }
 
-.info-tip:hover + b + .tip-popover,
-.info-tip:focus-visible + b + .tip-popover,
-.tip-popover:hover {
+.tip-wrap:hover .tip-popover,
+.tip-wrap:focus-within .tip-popover {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
@@ -150,7 +155,7 @@ html, body {
   content: "";
   position: absolute;
   top: -6px;
-  right: 14px;
+  right: 6px;
   width: 10px;
   height: 10px;
   background: var(--bg-elev2);

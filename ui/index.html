@@ -16,9 +16,11 @@
       <span class="meta-item"><label>всего</label><b id="m-total">—</b></span>
       <span class="meta-item"><label>ранжировано</label><b id="m-ranked">—</b></span>
       <span class="meta-item">
-        <label>формула <button class="info-tip" type="button" aria-label="описание формулы" aria-describedby="formula-tip">?</button></label>
+        <label>формула</label>
         <b id="m-formula">—</b>
-        <div class="tip-popover" id="formula-tip" role="tooltip">
+        <span class="tip-wrap">
+          <button class="info-tip" type="button" aria-label="описание формулы" aria-describedby="formula-tip">?</button>
+          <div class="tip-popover" id="formula-tip" role="tooltip">
           <code class="tip-formula">impact = (1 + links) · severity² / max(cost, 1)</code>
           <ul class="tip-list">
             <li>
@@ -34,7 +36,8 @@
             <li><b>severity²</b> — квадрат, чтобы якоря реально анкорили: sev=9 бьёт sev=3, пока cost не превышает в 9 раз</li>
           </ul>
           <div class="tip-foot">v1.1 — текущая версия. Изменения формулы фиксируются <code>stats.formula_version</code> + per-item <code>ranker_meta.formula_version</code>; mix-formula корпус блокируется invariants.</div>
-        </div>
+          </div>
+        </span>
       </span>
       <span class="meta-item"><label>ranker</label><b id="m-model">—</b></span>
       <span class="meta-item"><label>обновлено</label><b id="m-ts">—</b></span>
