@@ -1,26 +1,27 @@
 /* tech-radar UI — dark theme, no external deps */
 
-/* Nord-inspired calm dark theme.
-   - bg: polar night 0..3   (slate-grey, slightly cool)
-   - text: snow storm 4..6
-   - accent: frost blue     (replaces aggressive red)
-   - sev: aurora red/orange/grey, all muted vs. saturated reds. */
+/* Sber-brand inspired dark theme.
+   - bg: dark with subtle forest-green undertone (banking serious, calm)
+   - accent: Sber Green #21A038 (primary brand)
+   - severity maps to Sber gradient: green → yellow → orange.
+     Inverted by convention (green=low/OK, orange=high), and tuned warm
+     (orange instead of red) so "critical" reads strong but not aggressive. */
 :root {
-  --bg: #2e3440;
-  --bg-elev: #3b4252;
-  --bg-elev2: #434c5e;
-  --border: #4c566a;
-  --text: #eceff4;
-  --text-mute: #d8dee9;
-  --text-dim: #9099a8;
-  --accent: #81a1c1;
-  --accent-2: #ebcb8b;
-  --good: #a3be8c;
-  --info: #88c0d0;
-  --sev9: #bf616a;
-  --sev3: #d08770;
-  --sev1: #818897;
-  --sev0: #5e6878;
+  --bg: #101a16;
+  --bg-elev: #1a2722;
+  --bg-elev2: #25342e;
+  --border: #324740;
+  --text: #ecf4ef;
+  --text-mute: #b6c5bd;
+  --text-dim: #7c918a;
+  --accent: #21a038;          /* Sber primary green */
+  --accent-2: #ffd500;        /* Sber yellow (formula highlight) */
+  --good: #21a038;            /* issue pill — same brand green */
+  --info: #82c5dd;            /* inline pill — soft blue (contrast vs. green) */
+  --sev9: #fa6400;            /* Sber gradient orange — strong, not red */
+  --sev3: #f0b528;            /* Sber-leaning amber/yellow */
+  --sev1: #7ca88e;            /* muted sage — low priority = restful green */
+  --sev0: #4c5e59;
 }
 
 * { box-sizing: border-box; }
@@ -205,8 +206,8 @@ html, body {
   white-space: nowrap;
 }
 
-.kind-pill.kind-inline { background: rgba(136, 192, 208, 0.16); color: var(--info); }
-.kind-pill.kind-issue  { background: rgba(163, 190, 140, 0.18); color: var(--good); }
+.kind-pill.kind-inline { background: rgba(130, 197, 221, 0.16); color: var(--info); }
+.kind-pill.kind-issue  { background: rgba(33, 160, 56, 0.18); color: var(--good); }
 
 /* `.tip-anchors > li` grid was sized for severity pills (22px). Override for kind labels which are wider. */
 .tip-anchors > li:has(.kind-pill) {
@@ -278,9 +279,9 @@ html, body {
   font-variant-numeric: tabular-nums;
 }
 
-.sev-pill.sev-9 { background: rgba(191, 97, 106, 0.22); color: var(--sev9); }
-.sev-pill.sev-3 { background: rgba(208, 135, 112, 0.22); color: var(--sev3); }
-.sev-pill.sev-1 { background: rgba(129, 136, 151, 0.25); color: var(--sev1); }
+.sev-pill.sev-9 { background: rgba(250, 100, 0, 0.20); color: var(--sev9); }
+.sev-pill.sev-3 { background: rgba(240, 181, 40, 0.22); color: var(--sev3); }
+.sev-pill.sev-1 { background: rgba(124, 168, 142, 0.22); color: var(--sev1); }
 
 .tip-foot {
   font-size: 11px;
@@ -535,13 +536,13 @@ main {
   letter-spacing: 0.02em;
 }
 
-.badge-9 { background: rgba(191, 97, 106, 0.20); color: var(--sev9); }
-.badge-3 { background: rgba(208, 135, 112, 0.20); color: var(--sev3); }
-.badge-1 { background: rgba(129, 136, 151, 0.22); color: var(--sev1); }
-.badge-0 { background: rgba(94, 104, 120, 0.28); color: var(--sev0); }
+.badge-9 { background: rgba(250, 100, 0, 0.18); color: var(--sev9); }
+.badge-3 { background: rgba(240, 181, 40, 0.20); color: var(--sev3); }
+.badge-1 { background: rgba(124, 168, 142, 0.20); color: var(--sev1); }
+.badge-0 { background: rgba(76, 94, 89, 0.30); color: var(--sev0); }
 
-.badge-kind-inline { background: rgba(136, 192, 208, 0.16); color: var(--info); }
-.badge-kind-issue  { background: rgba(163, 190, 140, 0.18); color: var(--good); }
+.badge-kind-inline { background: rgba(130, 197, 221, 0.16); color: var(--info); }
+.badge-kind-issue  { background: rgba(33, 160, 56, 0.18); color: var(--good); }
 
 .cell-rationale {
   color: var(--text);
