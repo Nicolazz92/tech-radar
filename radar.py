@@ -161,7 +161,15 @@ def _serve_ui(port):
 
             return self._send_json(404, {"error": "not found", "path": path})
 
-    with socketserver.TCPServer(("0.0.0.0", port), H) as httpd:
+    # ThreadingTCPServer so that a long-running /api/refresh (which subprocesses
+    # the pipeline for minutes) doesn't block /api/state, health-checks, and
+    # other concurrent UI requests. The Handler closures (cfg_path, inv_path,
+    # _state_payload) are read-only / file-backed — no shared mutable state.
+    class _Threaded(socketserver.ThreadingMixIn, socketserver.TCPServer):
+        daemon_threads = True
+        allow_reuse_address = True
+
+    with _Threaded(("0.0.0.0", port), H) as httpd:
         print(f"[serve] http://localhost:{port}   (Ctrl-C to stop)")
         try:
             httpd.serve_forever()
