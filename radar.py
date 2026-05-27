@@ -143,18 +143,19 @@ def _serve_ui(port):
                 cmd = [sys.executable, str(ROOT / "radar.py")]
                 if not full:
                     cmd.append("--demo")
+                # Don't capture — let stdout/stderr stream to the parent process
+                # (which docker logs picks up). Subprocess prints batch progress
+                # in real time; on error the user just runs `docker logs tech-radar`.
+                print(f"[refresh] running: {' '.join(cmd)}", flush=True)
                 try:
-                    proc = subprocess.run(
-                        cmd, capture_output=True, text=True, cwd=str(ROOT),
-                        timeout=900, encoding="utf-8", errors="replace",
-                    )
+                    proc = subprocess.run(cmd, cwd=str(ROOT), timeout=900)
                 except subprocess.TimeoutExpired:
                     return self._send_json(500, {"error": "pipeline timeout (>15min)"})
                 if proc.returncode != 0:
                     return self._send_json(500, {
                         "error": "pipeline failed",
                         "code": proc.returncode,
-                        "stderr": (proc.stderr or "")[-2000:],
+                        "hint": "check `docker logs tech-radar` for subprocess stderr",
                     })
                 return self._send_json(200, _state_payload())
 
@@ -272,7 +273,12 @@ def _stage_rank(items, cfg, top_n, work_root, max_cost_usd):
             continue
         fix = rec.get("fix_cost_h")
         it["severity"] = sev
-        it["fix_cost_h"] = fix if isinstance(fix, (int, float)) and fix > 0 else None
+        if isinstance(fix, (int, float)) and fix > 0:
+            it["fix_cost_h"] = fix
+        else:
+            # LLM returned null/invalid despite prompt requiring a number —
+            # fall back to a coarse estimate by severity so the item still ranks.
+            it["fix_cost_h"] = rank_llm.fallback_cost_h(sev)
         it["rationale"] = (rec.get("rationale") or "")[:240]
         it["description"] = (rec.get("description") or "")[:600]
         it["priority_argument"] = (rec.get("priority_argument") or "")[:600]

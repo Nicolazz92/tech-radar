@@ -130,19 +130,32 @@ def score_mock(items):
 _PROMPT_SYS_RU = (
     "Ты оцениваешь элементы технического долга для радара приоритезации. "
     "Для каждого item верни ТОЛЬКО JSON следующей формы:\n"
-    '{"id":"<id>","severity":1|3|9,"fix_cost_h":<число|null>,'
+    '{"id":"<id>","severity":1|3|9,"fix_cost_h":<число часов>,'
     '"rationale":"<до 120 символов, по-русски>",'
     '"description":"<1-2 предложения по-русски>",'
     '"priority_argument":"<1-2 предложения по-русски>"}\n\n'
-    "Якоря severity: 9 — несущий (workaround блокирует фичу, известный класс "
-    "крашей, утечка ресурсов); 3 — реальный (всплывает в PR/триаже); "
-    "1 — косметика.\n\n"
-    "fix_cost_h — оценка в часах; null если не можешь оценить.\n"
+    "Якоря severity: 9 — критичный (workaround блокирует фичу, известный класс "
+    "крашей, утечка ресурсов, security/auth bypass); 3 — реальный (всплывает в "
+    "PR/триаже, повторяющиеся баги); 1 — косметика.\n\n"
+    "fix_cost_h ОБЯЗАТЕЛЬНО число часов (целое или дробное), не null. Если "
+    "точно не знаешь — дай грубую оценку по типу задачи: тривиальный фикс — 1, "
+    "локальная правка — 2-4, рефакторинг функции — 8, схемы/миграции — 12-40. "
+    "Лучше грубо, чем не вернуть число.\n\n"
     "severity ставь по тому, ЧТО ДЕЛАЕТ код (handler/util/test), а не по "
     "тому, как звучит комментарий.\n\n"
     "Верни JSON-массив объектов, та же длина и порядок что на входе. "
     "Никакой прозы, markdown, комментариев."
 )
+
+
+# Fallback cost estimate by severity — used only when LLM still returns
+# null/invalid fix_cost_h despite the prompt requiring a number.
+_DEFAULT_COST_BY_SEV = {9: 8, 3: 4, 1: 2}
+
+
+def fallback_cost_h(severity):
+    """Coarse fallback so a null-cost LLM response doesn't unrank the item."""
+    return _DEFAULT_COST_BY_SEV.get(severity, 4)
 
 
 def _parse_json_array(text):
