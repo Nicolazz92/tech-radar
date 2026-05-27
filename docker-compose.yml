@@ -4,7 +4,9 @@ services:
     image: tech-radar:latest
     container_name: tech-radar
     ports:
-      - "8080:8080"
+      # Host port configurable via PORT env (defaults 8080).
+      # Container always listens on 8080 internally.
+      - "${PORT:-8080}:8080"
     environment:
       # Optional. If unset, switching the UI toggle to "openrouter" will refuse.
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}

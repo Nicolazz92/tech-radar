@@ -136,3 +136,49 @@ GITHUB_TOKEN=ghp_...
 Без них всё работает в mock-режиме на демо-данных.
 
 После старта: http://localhost:8080
+
+## Установка на сервер (без docker локально)
+
+Если докер только на сервере, не на машине разработчика:
+
+### Способ 1 — деплой одной командой с локальной машины
+
+```bash
+# Из папки проекта на твоей машине:
+HOST=tr_prom ./deploy.sh
+
+# или явный хост и порт:
+HOST=root@1.2.3.4 PORT=9090 ./deploy.sh
+```
+
+`deploy.sh` делает три шага:
+1. `rsync` файлов на сервер в `/opt/tech-radar/` (без `.git`, `.cache`, `.work`, `.env`, артефактов)
+2. ssh-запуск `install.sh` на сервере
+3. Проверка, что UI отвечает
+
+### Способ 2 — вручную на сервере
+
+```bash
+# Скопировать проект на сервер (любым способом — scp, git clone, ...).
+# Затем на сервере:
+cd /opt/tech-radar
+chmod +x install.sh
+./install.sh
+```
+
+`install.sh` идемпотентный — можно перезапускать. Делает:
+1. Ставит docker engine + compose-plugin через apt (если их нет). Добавляет текущего юзера в `docker` группу.
+2. Спрашивает `OPENROUTER_API_KEY` и `GITHUB_TOKEN` интерактивно (или берёт из env: `OPENROUTER_API_KEY=sk-... ./install.sh`), пишет в `.env`.
+3. `docker compose build && up -d`.
+4. Прозванивает `/api/state` и печатает результат.
+
+Дополнительные флаги:
+```bash
+./install.sh --help                # справка
+./install.sh --no-key              # не трогать .env (mock-режим)
+./install.sh --skip-docker-install # docker уже стоит
+./install.sh --no-start            # только собрать образ
+PORT=9090 ./install.sh             # хостовый порт
+```
+
+После старта: `http://<server>:8080` (или какой `PORT` задал).
