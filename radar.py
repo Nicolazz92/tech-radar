@@ -44,13 +44,17 @@ def _serve_ui(port):
     import os  # noqa: F401 -- used in handler closure
 
     ui_dir = ROOT / "ui"
-    inv_path = ROOT / "inventory.json"
 
     if not (ui_dir / "index.html").exists():
         print(f"[serve] UI files missing at {ui_dir}")
         return 2
-    # inventory.json is allowed to be missing — UI shows empty state + user can
-    # click "Обновить" to generate it.
+    # Inventory files are per-mode: inventory.mock.json / inventory.openrouter.json.
+    # Toggling mock↔openrouter in the UI just switches which file is served —
+    # no re-run of the LLM pipeline. Both files are allowed to be missing on
+    # first start; UI shows an empty state until "Обновить" is clicked.
+
+    def _inv_path_for_mode(mode):
+        return ROOT / f"inventory.{mode}.json"
 
     cfg_path = ROOT / "config.json"
 
@@ -66,10 +70,12 @@ def _serve_ui(port):
         except Exception:
             cfg = {}
         rcfg = cfg.get("ranker") or {}
+        mode = rcfg.get("mode", "mock")
         inv = {}
-        if inv_path.exists():
+        ip = _inv_path_for_mode(mode)
+        if ip.exists():
             try:
-                inv = json.loads(inv_path.read_text(encoding="utf-8"))
+                inv = json.loads(ip.read_text(encoding="utf-8"))
             except Exception:
                 pass
         stats = (inv.get("stats") or {})
@@ -111,9 +117,19 @@ def _serve_ui(port):
             if path == "/app.js":
                 return self._send(200, (ui_dir / "app.js").read_bytes(), "application/javascript")
             if path == "/inventory.json":
-                if not inv_path.exists():
-                    return self._send_json(404, {"error": "inventory.json not generated yet"})
-                return self._send(200, inv_path.read_bytes(), "application/json")
+                # Serve the inventory for the CURRENT mock/openrouter mode.
+                try:
+                    cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+                except Exception:
+                    cfg = {}
+                mode = (cfg.get("ranker") or {}).get("mode", "mock")
+                ip = _inv_path_for_mode(mode)
+                if not ip.exists():
+                    return self._send_json(404, {
+                        "error": f"no inventory yet for mode={mode}",
+                        "hint": "click «Обновить» to run the pipeline for this mode",
+                    })
+                return self._send(200, ip.read_bytes(), "application/json")
             if path == "/api/state":
                 return self._send_json(200, _state_payload())
             return self._send_json(404, {"error": "not found", "path": path})
@@ -393,13 +409,18 @@ def main():
 
     _populate_label_signals(items, cfg)
 
-    top_n = args.top_n if args.top_n is not None else cfg["render"].get("top_n", 30)
+    # Two independent knobs:
+    #   report top_n  — how many rows the .md/.csv shows (from render.top_n)
+    #   ranker top_n  — how many items go to the LLM (from ranker.top_n; was
+    #                   render.top_n*3 — confusingly coupled)
+    report_top_n = args.top_n if args.top_n is not None else cfg["render"].get("top_n", 30)
+    rank_top = (args.top_n if args.top_n is not None
+                else cfg["ranker"].get("top_n", 200))
 
     if args.no_llm:
         print("[rank] skipped (--no-llm)")
         ranked_count, n_calls, cost = 0, 0, 0.0
     else:
-        rank_top = max(top_n * 3, 100)
         ranked_count, n_calls, cost = _stage_rank(
             items, cfg, rank_top, work_root, args.max_cost_usd)
         print(f"[rank] done: {ranked_count} items, {n_calls} LLM calls, ${cost:.4f}")
@@ -435,19 +456,20 @@ def main():
             print("  -", v)
         return 2
 
-    # Atomic write: tmp file in same dir + rename. Two concurrent refreshes
-    # used to race and produce a truncated/half-written inventory.json.
-    inv_path = ROOT / "inventory.json"
+    # Per-mode atomic write: each mock/openrouter run lives in its own
+    # inventory file so the UI toggle can swap between them without re-running.
+    mode = cfg["ranker"].get("mode", "mock")
+    inv_path = ROOT / f"inventory.{mode}.json"
     tmp_path = inv_path.with_suffix(".tmp")
     tmp_path.write_text(
         json.dumps(inv, ensure_ascii=False, indent=2), encoding="utf-8")
     tmp_path.replace(inv_path)
-    md, csv_text = render.write_outputs(inv, ROOT, top_n=top_n)
+    md, csv_text = render.write_outputs(inv, ROOT, top_n=report_top_n)
 
     print()
-    print(f"[radar] wrote inventory.json, report.md ({len(md)} chars), report.csv")
-    print(f"[radar] top-{top_n} preview:")
-    for line in md.split("\n")[:top_n + 12]:
+    print(f"[radar] wrote {inv_path.name}, report.md ({len(md)} chars), report.csv")
+    print(f"[radar] top-{report_top_n} preview:")
+    for line in md.split("\n")[:report_top_n + 12]:
         print(" ", line)
     return 0
 

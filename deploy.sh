@@ -49,6 +49,8 @@ TAR_EXCLUDES=(
   --exclude=.work
   --exclude=__pycache__
   --exclude=inventory.json
+  --exclude=inventory.mock.json
+  --exclude=inventory.openrouter.json
   --exclude=report.md
   --exclude=report.csv
 )

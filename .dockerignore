@@ -12,6 +12,7 @@ venv/
 .idea/
 .vscode/
 inventory.json
+inventory.*.json
 report.md
 report.csv
 Dockerfile

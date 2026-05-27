@@ -6,6 +6,7 @@
     "model": "qwen/qwen3-235b-a22b-2507",
     "openrouter_url": "https://openrouter.ai/api/v1/chat/completions",
     "rank_prompt_language": "ru",
+    "top_n": 200,
     "batch_size": 20,
     "max_cost_usd": 0.5,
     "price_in_per_m": 0.071,

@@ -112,6 +112,9 @@ async function setMode(mode) {
   }
   state.mode = mode;
   updateModeUI();
+  // Reload inventory.json — server now serves the file for the new mode
+  // (no pipeline re-run, just swap which on-disk file is read).
+  await load();
   return true;
 }
 
