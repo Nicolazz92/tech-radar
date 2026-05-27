@@ -1,21 +1,26 @@
 /* tech-radar UI — dark theme, no external deps */
 
+/* Nord-inspired calm dark theme.
+   - bg: polar night 0..3   (slate-grey, slightly cool)
+   - text: snow storm 4..6
+   - accent: frost blue     (replaces aggressive red)
+   - sev: aurora red/orange/grey, all muted vs. saturated reds. */
 :root {
-  --bg: #0f0d14;
-  --bg-elev: #181520;
-  --bg-elev2: #211d2c;
-  --border: #2a2536;
-  --text: #e2e8f0;
-  --text-mute: #94a3b8;
-  --text-dim: #64748b;
-  --accent: #c93545;
-  --accent-2: #fbbf24;
-  --good: #22c55e;
-  --info: #7dd3fc;
-  --sev9: #ef4444;
-  --sev3: #f59e0b;
-  --sev1: #94a3b8;
-  --sev0: #475569;
+  --bg: #2e3440;
+  --bg-elev: #3b4252;
+  --bg-elev2: #434c5e;
+  --border: #4c566a;
+  --text: #eceff4;
+  --text-mute: #d8dee9;
+  --text-dim: #9099a8;
+  --accent: #81a1c1;
+  --accent-2: #ebcb8b;
+  --good: #a3be8c;
+  --info: #88c0d0;
+  --sev9: #bf616a;
+  --sev3: #d08770;
+  --sev1: #818897;
+  --sev0: #5e6878;
 }
 
 * { box-sizing: border-box; }
@@ -200,8 +205,8 @@ html, body {
   white-space: nowrap;
 }
 
-.kind-pill.kind-inline { background: rgba(125, 211, 252, 0.13); color: var(--info); }
-.kind-pill.kind-issue  { background: rgba(34, 197, 94, 0.16); color: var(--good); }
+.kind-pill.kind-inline { background: rgba(136, 192, 208, 0.16); color: var(--info); }
+.kind-pill.kind-issue  { background: rgba(163, 190, 140, 0.18); color: var(--good); }
 
 /* `.tip-anchors > li` grid was sized for severity pills (22px). Override for kind labels which are wider. */
 .tip-anchors > li:has(.kind-pill) {
@@ -273,9 +278,9 @@ html, body {
   font-variant-numeric: tabular-nums;
 }
 
-.sev-pill.sev-9 { background: rgba(239, 68, 68, 0.18); color: var(--sev9); }
-.sev-pill.sev-3 { background: rgba(245, 158, 11, 0.18); color: var(--sev3); }
-.sev-pill.sev-1 { background: rgba(148, 163, 184, 0.18); color: var(--sev1); }
+.sev-pill.sev-9 { background: rgba(191, 97, 106, 0.22); color: var(--sev9); }
+.sev-pill.sev-3 { background: rgba(208, 135, 112, 0.22); color: var(--sev3); }
+.sev-pill.sev-1 { background: rgba(129, 136, 151, 0.25); color: var(--sev1); }
 
 .tip-foot {
   font-size: 11px;
@@ -530,13 +535,13 @@ main {
   letter-spacing: 0.02em;
 }
 
-.badge-9 { background: rgba(239, 68, 68, 0.18); color: var(--sev9); }
-.badge-3 { background: rgba(245, 158, 11, 0.18); color: var(--sev3); }
-.badge-1 { background: rgba(148, 163, 184, 0.18); color: var(--sev1); }
-.badge-0 { background: rgba(71, 85, 105, 0.25); color: var(--sev0); }
+.badge-9 { background: rgba(191, 97, 106, 0.20); color: var(--sev9); }
+.badge-3 { background: rgba(208, 135, 112, 0.20); color: var(--sev3); }
+.badge-1 { background: rgba(129, 136, 151, 0.22); color: var(--sev1); }
+.badge-0 { background: rgba(94, 104, 120, 0.28); color: var(--sev0); }
 
-.badge-kind-inline { background: rgba(125, 211, 252, 0.13); color: var(--info); }
-.badge-kind-issue  { background: rgba(34, 197, 94, 0.16); color: var(--good); }
+.badge-kind-inline { background: rgba(136, 192, 208, 0.16); color: var(--info); }
+.badge-kind-issue  { background: rgba(163, 190, 140, 0.18); color: var(--good); }
 
 .cell-rationale {
   color: var(--text);
