@@ -178,14 +178,6 @@ html, body {
   left: 6px;
 }
 
-/* When the tip-wrap lives in a <th>, keep header layout sane */
-.tip-wrap--th {
-  margin-left: 4px;
-  text-transform: none;
-  letter-spacing: normal;
-  font-weight: normal;
-}
-
 .tip-lead {
   margin: 0 0 8px;
   color: var(--text);

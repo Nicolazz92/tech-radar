@@ -279,9 +279,7 @@ function wireFilters() {
 
 function wireSort() {
   $$("#grid thead th[data-sort]").forEach((th) => {
-    th.addEventListener("click", (e) => {
-      // Don't trigger sort when clicking the info-tip "?" button or anything inside its tooltip
-      if (e.target.closest(".tip-wrap")) return;
+    th.addEventListener("click", () => {
       const key = th.dataset.sort;
       if (state.sort.key === key) {
         state.sort.dir = state.sort.dir === "asc" ? "desc" : "asc";

@@ -66,6 +66,17 @@
     </div>
     <div class="filter-group">
       <span class="filter-label">Тип:</span>
+      <span class="tip-wrap">
+        <button class="info-tip" type="button" aria-label="что значит тип" aria-describedby="kind-tip">?</button>
+        <div class="tip-popover tip-popover--left" id="kind-tip" role="tooltip">
+          <p class="tip-lead">Тип говорит, откуда взялся элемент:</p>
+          <ul class="tip-anchors">
+            <li><span class="kind-pill kind-inline">inline</span><span><b>inline-маркер</b> — комментарий <code>TODO</code> / <code>FIXME</code> / <code>HACK</code> / <code>XXX</code> в исходном коде. Извлекается <code>grep</code>-ом по shallow-clone'у репозитория.</span></li>
+            <li><span class="kind-pill kind-issue">issue</span><span><b>GitHub issue</b> — открытый тикет с одним из лейблов <code>tech-debt</code> / <code>refactor</code> / <code>cleanup</code> / <code>code-quality</code>. Тянется через GitHub API.</span></li>
+          </ul>
+          <div class="tip-foot">Дедуп по <code>id = sha256(repo + kind + locator)</code> — inline и issue с одинаковым текстом считаются разными элементами.</div>
+        </div>
+      </span>
       <button class="filter-btn active" data-filter="kind" data-value="all">все</button>
       <button class="filter-btn" data-filter="kind" data-value="inline_marker">inline</button>
       <button class="filter-btn" data-filter="kind" data-value="issue">issue</button>
@@ -82,20 +93,7 @@
         <tr>
           <th class="num">#</th>
           <th data-sort="repo">репо</th>
-          <th data-sort="kind">
-            тип
-            <span class="tip-wrap tip-wrap--th">
-              <button class="info-tip" type="button" aria-label="описание колонки тип" aria-describedby="kind-tip">?</button>
-              <div class="tip-popover tip-popover--left" id="kind-tip" role="tooltip">
-                <p class="tip-lead">Колонка показывает, откуда взялся элемент:</p>
-                <ul class="tip-anchors">
-                  <li><span class="kind-pill kind-inline">inline</span><span><b>inline-маркер</b> — комментарий <code>TODO</code> / <code>FIXME</code> / <code>HACK</code> / <code>XXX</code> в исходном коде. Извлекается <code>grep</code>-ом по shallow-clone'у репозитория.</span></li>
-                  <li><span class="kind-pill kind-issue">issue</span><span><b>GitHub issue</b> — открытый тикет с одним из лейблов <code>tech-debt</code> / <code>refactor</code> / <code>cleanup</code> / <code>code-quality</code>. Тянется через GitHub API.</span></li>
-                </ul>
-                <div class="tip-foot">Дедуп по <code>id = sha256(repo + kind + locator)</code> — inline и issue с одинаковым текстом считаются разными элементами.</div>
-              </div>
-            </span>
-          </th>
+          <th data-sort="kind">тип</th>
           <th>локатор</th>
           <th data-sort="priority">приоритет</th>
           <th data-sort="severity" class="num">крит.</th>
