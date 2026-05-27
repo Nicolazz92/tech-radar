@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Tech-Radar</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="title">
+      <h1>Tech-Radar</h1>
+      <span class="subtitle">приоритезация техдолга по группе репозиториев</span>
+    </div>
+    <div class="meta" id="meta">
+      <span class="meta-item"><label>всего</label><b id="m-total">—</b></span>
+      <span class="meta-item"><label>ранжировано</label><b id="m-ranked">—</b></span>
+      <span class="meta-item"><label>формула</label><b id="m-formula">—</b></span>
+      <span class="meta-item"><label>ranker</label><b id="m-model">—</b></span>
+      <span class="meta-item"><label>обновлено</label><b id="m-ts">—</b></span>
+    </div>
+  </header>
+
+  <section class="charts">
+    <div class="chart-card">
+      <h3>По критичности</h3>
+      <div class="bars" id="chart-severity"></div>
+    </div>
+    <div class="chart-card">
+      <h3>По репозиторию</h3>
+      <div class="bars" id="chart-repos"></div>
+    </div>
+  </section>
+
+  <section class="filters">
+    <div class="filter-group">
+      <span class="filter-label">Критичность:</span>
+      <button class="filter-btn active" data-filter="severity" data-value="all">все</button>
+      <button class="filter-btn" data-filter="severity" data-value="9">9 (несущий)</button>
+      <button class="filter-btn" data-filter="severity" data-value="3">3 (реальный)</button>
+      <button class="filter-btn" data-filter="severity" data-value="1">1 (косметика)</button>
+      <button class="filter-btn" data-filter="severity" data-value="null">без оценки</button>
+    </div>
+    <div class="filter-group">
+      <span class="filter-label">Тип:</span>
+      <button class="filter-btn active" data-filter="kind" data-value="all">все</button>
+      <button class="filter-btn" data-filter="kind" data-value="inline_marker">inline</button>
+      <button class="filter-btn" data-filter="kind" data-value="issue">issue</button>
+    </div>
+    <div class="filter-group search">
+      <input type="search" id="search" placeholder="поиск по тексту, локатору, репо..." spellcheck="false">
+      <span class="count"><b id="visible-count">0</b> из <b id="total-count">0</b></span>
+    </div>
+  </section>
+
+  <main>
+    <table id="grid">
+      <thead>
+        <tr>
+          <th class="num">#</th>
+          <th data-sort="repo">репо</th>
+          <th data-sort="kind">тип</th>
+          <th>локатор</th>
+          <th data-sort="priority">приоритет</th>
+          <th data-sort="severity" class="num">крит.</th>
+          <th data-sort="fix_cost_h" class="num">часы</th>
+          <th>связи</th>
+          <th data-sort="impact" class="num sorted-desc">импакт</th>
+          <th>обоснование</th>
+        </tr>
+      </thead>
+      <tbody id="grid-body"></tbody>
+    </table>
+    <div id="empty" class="empty hidden">Ничего не найдено по текущим фильтрам.</div>
+  </main>
+
+  <div class="drawer hidden" id="drawer">
+    <div class="drawer-head">
+      <h2 id="dr-title"></h2>
+      <button class="close" id="dr-close" title="Закрыть">×</button>
+    </div>
+    <div class="drawer-body">
+      <div class="dr-row"><label>репо</label><span id="dr-repo"></span></div>
+      <div class="dr-row"><label>локатор</label><span id="dr-locator" class="mono"></span></div>
+      <div class="dr-row"><label>критичность</label><span id="dr-sev"></span></div>
+      <div class="dr-row"><label>часы</label><span id="dr-cost"></span></div>
+      <div class="dr-row"><label>импакт</label><span id="dr-impact"></span></div>
+      <div class="dr-row"><label>связи</label><span id="dr-links"></span></div>
+      <div class="dr-row"><label>обоснование</label><span id="dr-rat"></span></div>
+      <div class="dr-block"><label>описание</label><p id="dr-desc"></p></div>
+      <div class="dr-block"><label>почему в приоритете</label><p id="dr-prio"></p></div>
+      <div class="dr-block"><label>лейблы</label><div id="dr-labels"></div></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

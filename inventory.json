@@ -1,5 +1,5 @@
 {
-  "ts": "2026-05-27T08:42:52.518934+00:00",
+  "ts": "2026-05-27T08:49:28.509110+00:00",
   "scope": {
     "repos": [
       "grafana/alloy",
@@ -24,15 +24,15 @@
       "inline_marker": 14,
       "issue": 6
     },
-    "ranked_count": 0,
-    "formula_version": null,
+    "ranked_count": 20,
+    "formula_version": "v1.1",
     "ranking_run": {
       "model": "mock-heuristic",
       "mode": "mock",
-      "items_scored": 0,
-      "llm_calls": 0,
+      "items_scored": 20,
+      "llm_calls": 1,
       "cost_usd": 0.0,
-      "ts": "2026-05-27T08:42:52.518934+00:00"
+      "ts": "2026-05-27T08:49:28.509110+00:00"
     }
   },
   "items": [
@@ -59,7 +59,19 @@
       "priority_label": 1,
       "business_value": 1,
       "deadline_days": null,
-      "engagement": 0.0
+      "engagement": 0.0,
+      "code_context": "",
+      "severity": 9,
+      "fix_cost_h": 8,
+      "rationale": "Реальный риск: FIXME: validation is disabled here — risk of malformed dashboards reaching backend handler",
+      "description": "Маркер `FIXME`. FIXME: validation is disabled here — risk of malformed dashboards reaching backend handlers",
+      "priority_argument": "Высокий приоритет: фикс снимает риск/баг с горячего пути и/или разблокирует другие репо группы.",
+      "impact": 20.25,
+      "ranker_meta": {
+        "ts": "2026-05-27T08:49:28.508114+00:00",
+        "model": "mock-heuristic",
+        "formula_version": "v1.1"
+      }
     },
     {
       "id": "demo02a000000002",
@@ -82,7 +94,19 @@
       "priority_label": 1,
       "business_value": 1,
       "deadline_days": null,
-      "engagement": 0.0
+      "engagement": 0.0,
+      "code_context": "",
+      "severity": 9,
+      "fix_cost_h": 8,
+      "rationale": "Несущий: HACK: skip auth check for legacy clients; remove after deprecation window",
+      "description": "Маркер `HACK`. HACK: skip auth check for legacy clients; remove after deprecation window",
+      "priority_argument": "Высокий приоритет: фикс снимает риск/баг с горячего пути и/или разблокирует другие репо группы.",
+      "impact": 10.125,
+      "ranker_meta": {
+        "ts": "2026-05-27T08:49:28.508114+00:00",
+        "model": "mock-heuristic",
+        "formula_version": "v1.1"
+      }
     },
     {
       "id": "demo03a000000003",
@@ -108,7 +132,19 @@
       "priority_label": 1,
       "business_value": 1,
       "deadline_days": null,
-      "engagement": 0.0
+      "engagement": 0.0,
+      "code_context": "",
+      "severity": 9,
+      "fix_cost_h": 8,
+      "rationale": "Реальный риск: FIXME: fix inflated stats — race condition causes counts to drift across mimir and tempo",
+      "description": "Маркер `FIXME`. FIXME: fix inflated stats — race condition causes counts to drift across mimir and tempo",
+      "priority_argument": "Высокий приоритет: фикс снимает риск/баг с горячего пути и/или разблокирует другие репо группы.",
+      "impact": 30.375,
+      "ranker_meta": {
+        "ts": "2026-05-27T08:49:28.508114+00:00",
+        "model": "mock-heuristic",
+        "formula_version": "v1.1"
+      }
     },
     {
       "id": "demo04a000000004",
@@ -131,7 +167,19 @@
       "priority_label": 1,
       "business_value": 1,
       "deadline_days": null,
-      "engagement": 0.0
+      "engagement": 0.0,
+      "code_context": "",
+      "severity": 3,
+      "fix_cost_h": 4,
+      "rationale": "Реальный: FIXME: ForEach overhead — had to expose internal struct, breaks encapsulation but no other",
+      "description": "Маркер `FIXME`. FIXME: ForEach overhead — had to expose internal struct, breaks encapsulation but no other way",
+      "priority_argument": "Средний приоритет: проявляется регулярно, требует внимания, но не блокирует фичи.",
+      "impact": 2.25,
+      "ranker_meta": {
+        "ts": "2026-05-27T08:49:28.508114+00:00",
+        "model": "mock-heuristic",
+        "formula_version": "v1.1"
+      }
     },
     {
       "id": "demo05a000000005",
@@ -154,7 +202,19 @@
       "priority_label": 1,
       "business_value": 1,
       "deadline_days": null,
-      "engagement": 0.0
+      "engagement": 0.0,
+      "code_context": "",
+      "severity": 3,
+      "fix_cost_h": 4,
+      "rationale": "Реальный: FIXME: same as hpoint_ring_buffer — performance workaround in fpoint path",
+      "description": "Маркер `FIXME`. FIXME: same as hpoint_ring_buffer — performance workaround in fpoint path",
+      "priority_argument": "Средний приоритет: проявляется регулярно, требует внимания, но не блокирует фичи.",
+      "impact": 2.25,
+      "ranker_meta": {
+        "ts": "2026-05-27T08:49:28.508114+00:00",
+        "model": "mock-heuristic",
+        "formula_version": "v1.1"
+      }
     },
     {
       "id": "demo06a000000006",
@@ -177,7 +237,19 @@
       "priority_label": 1,
       "business_value": 1,
       "deadline_days": null,
-      "engagement": 0.0
+      "engagement": 0.0,
+      "code_context": "",
+      "severity": 9,
+      "fix_cost_h": 8,
+      "rationale": "Несущий: HACK: hard-coded HMAC algorithm name lookup — broken cryptographic ops if algo missing",
+      "description": "Маркер `HACK`. HACK: hard-coded HMAC algorithm name lookup — broken cryptographic ops if algo missing",
+      "priority_argument": "Высокий приоритет: фикс снимает риск/баг с горячего пути и/или разблокирует другие репо группы.",
+      "impact": 10.125,
+      "ranker_meta": {
+        "ts": "2026-05-27T08:49:28.508114+00:00",
+        "model": "mock-heuristic",
+        "formula_version": "v1.1"
+      }
     },
     {
       "id": "demo07a000000007",
@@ -200,7 +272,19 @@
       "priority_label": 1,
       "business_value": 1,
       "deadline_days": null,
-      "engagement": 0.0
+      "engagement": 0.0,
+      "code_context": "",
+      "severity": 1,
+      "fix_cost_h": 1,
+      "rationale": "Косметика: TODO: rename helper for clarity",
+      "description": "Маркер `TODO`. TODO: rename helper for clarity",
+      "priority_argument": "В приоритете не нужно: эстетика/мелкое улучшение.",
+      "impact": 1.0,
+      "ranker_meta": {
+        "ts": "2026-05-27T08:49:28.508114+00:00",
+        "model": "mock-heuristic",
+        "formula_version": "v1.1"
+      }
     },
     {
       "id": "demo08a000000008",
@@ -223,7 +307,19 @@
       "priority_label": 1,
       "business_value": 1,
       "deadline_days": null,
-      "engagement": 0.0
+      "engagement": 0.0,
+      "code_context": "",
+      "severity": 9,
+      "fix_cost_h": 8,
+      "rationale": "Реальный риск: TODO: add support for different validation schemes",
+      "description": "Маркер `TODO`. TODO: add support for different validation schemes",
+      "priority_argument": "Высокий приоритет: фикс снимает риск/баг с горячего пути и/или разблокирует другие репо группы.",
+      "impact": 10.125,
+      "ranker_meta": {
+        "ts": "2026-05-27T08:49:28.508114+00:00",
+        "model": "mock-heuristic",
+        "formula_version": "v1.1"
+      }
     },
     {
       "id": "demo09a000000009",
@@ -246,7 +342,19 @@
       "priority_label": 1,
       "business_value": 1,
       "deadline_days": null,
-      "engagement": 0.0
+      "engagement": 0.0,
+      "code_context": "",
+      "severity": 9,
+      "fix_cost_h": 8,
+      "rationale": "Реальный риск: FIXME: critical search logic depends on field analytics — review and optimize",
+      "description": "Маркер `FIXME`. FIXME: critical search logic depends on field analytics — review and optimize",
+      "priority_argument": "Высокий приоритет: фикс снимает риск/баг с горячего пути и/или разблокирует другие репо группы.",
+      "impact": 10.125,
+      "ranker_meta": {
+        "ts": "2026-05-27T08:49:28.508114+00:00",
+        "model": "mock-heuristic",
+        "formula_version": "v1.1"
+      }
     },
     {
       "id": "demo10a000000010",
@@ -274,7 +382,18 @@
       "priority_label": 6,
       "business_value": 1,
       "deadline_days": null,
-      "engagement": 0.116
+      "engagement": 0.116,
+      "severity": 3,
+      "fix_cost_h": 12,
+      "rationale": "Реальный: Refactor query path to share types with mimir streaming PromQL",
+      "description": "Маркер `issue`. Refactor query path to share types with mimir streaming PromQL",
+      "priority_argument": "Средний приоритет: проявляется регулярно, требует внимания, но не блокирует фичи.",
+      "impact": 1.5,
+      "ranker_meta": {
+        "ts": "2026-05-27T08:49:28.508114+00:00",
+        "model": "mock-heuristic",
+        "formula_version": "v1.1"
+      }
     },
     {
       "id": "demo11a000000011",
@@ -301,7 +420,18 @@
       "priority_label": 9,
       "business_value": 9,
       "deadline_days": null,
-      "engagement": 0.142
+      "engagement": 0.142,
+      "severity": 9,
+      "fix_cost_h": 8,
+      "rationale": "Реальный риск: Resource leak in query-frontend under high concurrency",
+      "description": "Маркер `issue`. Resource leak in query-frontend under high concurrency",
+      "priority_argument": "Высокий приоритет: фикс снимает риск/баг с горячего пути и/или разблокирует другие репо группы.",
+      "impact": 10.125,
+      "ranker_meta": {
+        "ts": "2026-05-27T08:49:28.508114+00:00",
+        "model": "mock-heuristic",
+        "formula_version": "v1.1"
+      }
     },
     {
       "id": "demo12a000000012",
@@ -327,7 +457,18 @@
       "priority_label": 1,
       "business_value": 1,
       "deadline_days": null,
-      "engagement": 0.036
+      "engagement": 0.036,
+      "severity": 3,
+      "fix_cost_h": 4,
+      "rationale": "Реальный: Cleanup deprecated config flags removed in v3",
+      "description": "Маркер `issue`. Cleanup deprecated config flags removed in v3",
+      "priority_argument": "Средний приоритет: проявляется регулярно, требует внимания, но не блокирует фичи.",
+      "impact": 2.25,
+      "ranker_meta": {
+        "ts": "2026-05-27T08:49:28.508114+00:00",
+        "model": "mock-heuristic",
+        "formula_version": "v1.1"
+      }
     },
     {
       "id": "demo13a000000013",
@@ -353,7 +494,18 @@
       "priority_label": 9,
       "business_value": 1,
       "deadline_days": 4,
-      "engagement": 0.505
+      "engagement": 0.505,
+      "severity": 9,
+      "fix_cost_h": 8,
+      "rationale": "Реальный риск: Auth bypass possible via crafted SSO callback URL",
+      "description": "Маркер `issue`. Auth bypass possible via crafted SSO callback URL",
+      "priority_argument": "Высокий приоритет: фикс снимает риск/баг с горячего пути и/или разблокирует другие репо группы.",
+      "impact": 10.125,
+      "ranker_meta": {
+        "ts": "2026-05-27T08:49:28.508114+00:00",
+        "model": "mock-heuristic",
+        "formula_version": "v1.1"
+      }
     },
     {
       "id": "demo14a000000014",
@@ -379,7 +531,18 @@
       "priority_label": 1,
       "business_value": 1,
       "deadline_days": null,
-      "engagement": 0.088
+      "engagement": 0.088,
+      "severity": 9,
+      "fix_cost_h": 12,
+      "rationale": "Реальный риск: Refactor: consolidate config validation across components",
+      "description": "Маркер `issue`. Refactor: consolidate config validation across components",
+      "priority_argument": "Высокий приоритет: фикс снимает риск/баг с горячего пути и/или разблокирует другие репо группы.",
+      "impact": 6.75,
+      "ranker_meta": {
+        "ts": "2026-05-27T08:49:28.508114+00:00",
+        "model": "mock-heuristic",
+        "formula_version": "v1.1"
+      }
     },
     {
       "id": "demo15a000000015",
@@ -402,7 +565,19 @@
       "priority_label": 1,
       "business_value": 1,
       "deadline_days": null,
-      "engagement": 0.0
+      "engagement": 0.0,
+      "code_context": "",
+      "severity": 3,
+      "fix_cost_h": 4,
+      "rationale": "Реальный: TODO: clean up — duplicate option parsing for cli vs config file",
+      "description": "Маркер `TODO`. TODO: clean up — duplicate option parsing for cli vs config file",
+      "priority_argument": "Средний приоритет: проявляется регулярно, требует внимания, но не блокирует фичи.",
+      "impact": 2.25,
+      "ranker_meta": {
+        "ts": "2026-05-27T08:49:28.508114+00:00",
+        "model": "mock-heuristic",
+        "formula_version": "v1.1"
+      }
     },
     {
       "id": "demo16a000000016",
@@ -425,7 +600,19 @@
       "priority_label": 1,
       "business_value": 1,
       "deadline_days": null,
-      "engagement": 0.0
+      "engagement": 0.0,
+      "code_context": "",
+      "severity": 9,
+      "fix_cost_h": 8,
+      "rationale": "Реальный риск: FIXME: this test is flaky — workaround with sleep, fix the race instead",
+      "description": "Маркер `FIXME`. FIXME: this test is flaky — workaround with sleep, fix the race instead",
+      "priority_argument": "Высокий приоритет: фикс снимает риск/баг с горячего пути и/или разблокирует другие репо группы.",
+      "impact": 10.125,
+      "ranker_meta": {
+        "ts": "2026-05-27T08:49:28.508114+00:00",
+        "model": "mock-heuristic",
+        "formula_version": "v1.1"
+      }
     },
     {
       "id": "demo17a000000017",
@@ -448,7 +635,19 @@
       "priority_label": 1,
       "business_value": 1,
       "deadline_days": null,
-      "engagement": 0.0
+      "engagement": 0.0,
+      "code_context": "",
+      "severity": 9,
+      "fix_cost_h": 8,
+      "rationale": "Реальный риск: FIXME: WAL recovery can crash on partial write — needs proper error handling and replay",
+      "description": "Маркер `FIXME`. FIXME: WAL recovery can crash on partial write — needs proper error handling and replay",
+      "priority_argument": "Высокий приоритет: фикс снимает риск/баг с горячего пути и/или разблокирует другие репо группы.",
+      "impact": 10.125,
+      "ranker_meta": {
+        "ts": "2026-05-27T08:49:28.508114+00:00",
+        "model": "mock-heuristic",
+        "formula_version": "v1.1"
+      }
     },
     {
       "id": "demo18a000000018",
@@ -471,7 +670,19 @@
       "priority_label": 1,
       "business_value": 1,
       "deadline_days": null,
-      "engagement": 0.0
+      "engagement": 0.0,
+      "code_context": "",
+      "severity": 9,
+      "fix_cost_h": 8,
+      "rationale": "Реальный риск: FIXME: inefficient unmarshal — slow path for large traces causes ingest backlog",
+      "description": "Маркер `FIXME`. FIXME: inefficient unmarshal — slow path for large traces causes ingest backlog",
+      "priority_argument": "Высокий приоритет: фикс снимает риск/баг с горячего пути и/или разблокирует другие репо группы.",
+      "impact": 10.125,
+      "ranker_meta": {
+        "ts": "2026-05-27T08:49:28.508114+00:00",
+        "model": "mock-heuristic",
+        "formula_version": "v1.1"
+      }
     },
     {
       "id": "demo19a000000019",
@@ -494,7 +705,19 @@
       "priority_label": 1,
       "business_value": 1,
       "deadline_days": null,
-      "engagement": 0.0
+      "engagement": 0.0,
+      "code_context": "",
+      "severity": 1,
+      "fix_cost_h": 2,
+      "rationale": "Косметика: TODO: extract method for cleaner readability",
+      "description": "Маркер `TODO`. TODO: extract method for cleaner readability",
+      "priority_argument": "В приоритете не нужно: эстетика/мелкое улучшение.",
+      "impact": 0.5,
+      "ranker_meta": {
+        "ts": "2026-05-27T08:49:28.508114+00:00",
+        "model": "mock-heuristic",
+        "formula_version": "v1.1"
+      }
     },
     {
       "id": "demo20a000000020",
@@ -520,7 +743,18 @@
       "priority_label": 6,
       "business_value": 1,
       "deadline_days": null,
-      "engagement": 0.098
+      "engagement": 0.098,
+      "severity": 9,
+      "fix_cost_h": 8,
+      "rationale": "Реальный риск: Memory leak in prometheus.remote_write component during reload",
+      "description": "Маркер `issue`. Memory leak in prometheus.remote_write component during reload",
+      "priority_argument": "Высокий приоритет: фикс снимает риск/баг с горячего пути и/или разблокирует другие репо группы.",
+      "impact": 10.125,
+      "ranker_meta": {
+        "ts": "2026-05-27T08:49:28.508114+00:00",
+        "model": "mock-heuristic",
+        "formula_version": "v1.1"
+      }
     }
   ]
 }

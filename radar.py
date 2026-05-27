@@ -35,6 +35,58 @@ import render
 import score
 
 
+# ---------------------------------------------------------------- UI server
+
+def _serve_ui(port):
+    """Tiny HTTP server: serves ui/index.html + inventory.json on http://localhost:PORT."""
+    import http.server
+    import socketserver
+
+    ui_dir = ROOT / "ui"
+    inv_path = ROOT / "inventory.json"
+
+    if not (ui_dir / "index.html").exists():
+        print(f"[serve] UI files missing at {ui_dir}")
+        return 2
+    if not inv_path.exists():
+        print(f"[serve] inventory.json missing — run `python radar.py --demo` first")
+        return 2
+
+    class H(http.server.BaseHTTPRequestHandler):
+        def log_message(self, fmt, *args):
+            print(f"[serve] {self.address_string()} {fmt % args}")
+
+        def _send(self, status, body, ctype):
+            if isinstance(body, str):
+                body = body.encode("utf-8")
+            self.send_response(status)
+            self.send_header("Content-Type", ctype + "; charset=utf-8")
+            self.send_header("Content-Length", str(len(body)))
+            self.send_header("Cache-Control", "no-cache")
+            self.end_headers()
+            self.wfile.write(body)
+
+        def do_GET(self):
+            path = self.path.split("?", 1)[0]
+            if path in ("/", "/index.html"):
+                return self._send(200, (ui_dir / "index.html").read_bytes(), "text/html")
+            if path == "/style.css":
+                return self._send(200, (ui_dir / "style.css").read_bytes(), "text/css")
+            if path == "/app.js":
+                return self._send(200, (ui_dir / "app.js").read_bytes(), "application/javascript")
+            if path == "/inventory.json":
+                return self._send(200, inv_path.read_bytes(), "application/json")
+            return self._send(404, "not found", "text/plain")
+
+    with socketserver.TCPServer(("0.0.0.0", port), H) as httpd:
+        print(f"[serve] http://localhost:{port}   (Ctrl-C to stop)")
+        try:
+            httpd.serve_forever()
+        except KeyboardInterrupt:
+            print("\n[serve] stopped")
+    return 0
+
+
 def _load_config():
     cfg = json.loads((ROOT / "config.json").read_text(encoding="utf-8"))
     return cfg
@@ -191,7 +243,14 @@ def main():
                     help="LLM cost cap (overrides config).")
     ap.add_argument("--repo", default=None,
                     help="Single repo (owner/name) instead of repos.txt.")
+    ap.add_argument("--serve", action="store_true",
+                    help="Start a tiny HTTP server with the web UI (uses existing inventory.json).")
+    ap.add_argument("--port", type=int, default=8080,
+                    help="Port for --serve (default 8080).")
     args = ap.parse_args()
+
+    if args.serve:
+        return _serve_ui(args.port)
 
     cfg = _load_config()
     cache_root = ROOT / ".cache"
