@@ -14,11 +14,17 @@ RUN apt-get update \
 # Run as non-root.
 RUN useradd -m -u 1000 radar
 
-# Create /app and chown it BEFORE WORKDIR/COPY/USER. Critical: WORKDIR creates
-# missing parent dirs as root, and --chown on COPY only sets ownership of the
-# copied files, not the destination directory. Without this, radar user can't
-# create new files in /app (e.g. write inventory.json from a refresh call).
-RUN mkdir -p /app && chown radar:radar /app
+# Create /app + cache/work subdirs as radar-owned BEFORE WORKDIR/COPY/USER.
+# Why each piece:
+# - /app: WORKDIR creates missing dirs as root; COPY --chown only sets file
+#   ownership, not the destination directory. Without this radar can't write
+#   new files into /app (e.g. inventory.json).
+# - /app/.cache, /app/.work: these become docker named-volume mountpoints. On
+#   first volume creation Docker preserves the image's ownership of the path,
+#   so we pre-create them radar-owned. Otherwise the volume defaults to root
+#   and radar can't write GitHub issue cache or shallow clones into them.
+RUN mkdir -p /app /app/.cache /app/.work \
+ && chown -R radar:radar /app
 WORKDIR /app
 
 # Copy source (see .dockerignore for what is excluded).
