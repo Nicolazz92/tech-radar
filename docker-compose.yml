@@ -1,0 +1,25 @@
+services:
+  tech-radar:
+    build: .
+    image: tech-radar:latest
+    container_name: tech-radar
+    ports:
+      - "8080:8080"
+    environment:
+      # Optional. If unset, switching the UI toggle to "openrouter" will refuse.
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-}
+      - GITHUB_TOKEN=${GITHUB_TOKEN:-}
+    volumes:
+      # Persist scored inventory + reports between restarts.
+      - radar-state:/app/state
+      # Persist GitHub API cache (24h TTL) and shallow clones.
+      - radar-cache:/app/.cache
+      - radar-work:/app/.work
+      # config.json is bind-mounted from host so editing it is sticky across rebuilds.
+      - ./config.json:/app/config.json
+    restart: unless-stopped
+
+volumes:
+  radar-state:
+  radar-cache:
+  radar-work:

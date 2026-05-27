@@ -1,0 +1,20 @@
+# Reduces build context. Runtime state lives in named volumes, not in the image.
+.git
+.gitignore
+.cache/
+.work/
+__pycache__/
+**/__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+.idea/
+.vscode/
+inventory.json
+report.md
+report.csv
+Dockerfile
+.dockerignore
+docker-compose.yml
+README.md

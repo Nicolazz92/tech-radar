@@ -98,3 +98,41 @@ tech-radar/
 - Sweep + fetch: $0 (GitHub API + git clone)
 - Mock LLM: $0
 - Real LLM (qwen-turbo): ~$0.005 за top-200, $0.01 за top-500, hard-cap по умолчанию $0.50
+
+## Web UI (live controls)
+
+`python radar.py --serve --port 8080` поднимает web-фронт на `http://localhost:8080`. В шапке справа:
+
+- **Toggle `mock ⇄ openrouter`** — переключает `config.json:ranker.mode` через `POST /api/config`. При попытке включить `openrouter` без `OPENROUTER_API_KEY` в env — отказ с подсказкой.
+- **Кнопка «Обновить»** — `POST /api/refresh`, перегенерирует `inventory.json` под текущий режим (по умолчанию `--demo`, чтобы быстро). Передай `{"full": true}` в body для полного пайплайна (clone + grep + GitHub).
+
+UI не дёргает LLM на каждом заходе на страницу — данные грузятся из `inventory.json` (статика). LLM запускается только при ручном клике «Обновить» или CLI-вызове `python radar.py`.
+
+## Docker
+
+Поднять prod-like окружение одной командой:
+
+```bash
+docker compose up -d --build
+```
+
+Что внутри:
+- `python:3.12-slim` + git
+- Non-root user `radar`
+- Healthcheck на `/api/state` каждые 30 сек
+- При build выполняется `python radar.py --demo` — первая страница UI уже не пустая
+- Volumes:
+  - `radar-state` — `inventory.json`, отчёты (persistent)
+  - `radar-cache` — GitHub API cache 24h TTL
+  - `radar-work` — shallow clones репо
+  - `./config.json` — bind-mount (правки в config с хоста сразу видны контейнером)
+
+Переменные окружения (через `.env` рядом с `docker-compose.yml`):
+```
+OPENROUTER_API_KEY=sk-or-v1-...
+GITHUB_TOKEN=ghp_...
+```
+
+Без них всё работает в mock-режиме на демо-данных.
+
+После старта: http://localhost:8080

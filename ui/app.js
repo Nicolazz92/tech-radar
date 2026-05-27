@@ -74,10 +74,81 @@ function escapeHtml(s) {
 
 async function load() {
   const resp = await fetch("inventory.json", { cache: "no-cache" });
-  if (!resp.ok) throw new Error(`inventory.json: HTTP ${resp.status}`);
+  if (!resp.ok) {
+    // empty state — server reachable, just no inventory yet
+    state.raw = { stats: {}, items: [] };
+    state.items = [];
+    renderAll();
+    return;
+  }
   state.raw = await resp.json();
   state.items = state.raw.items || [];
   renderAll();
+}
+
+async function fetchServerState() {
+  try {
+    const r = await fetch("/api/state", { cache: "no-cache" });
+    if (!r.ok) return null;
+    return await r.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+// ------------------------------------------------------------ mode toggle + refresh
+
+async function setMode(mode) {
+  const r = await fetch("/api/config", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mode }),
+  });
+  if (!r.ok) {
+    const err = await r.json().catch(() => ({}));
+    alert("Не удалось переключить режим: " + (err.error || r.statusText) +
+      (err.hint ? "\n\n" + err.hint : ""));
+    return false;
+  }
+  state.mode = mode;
+  updateModeUI();
+  return true;
+}
+
+function updateModeUI() {
+  const toggle = $("#mode-toggle");
+  const isOpenrouter = state.mode === "openrouter";
+  toggle.setAttribute("aria-checked", isOpenrouter ? "true" : "false");
+  $$(".mode-label").forEach((el) => {
+    el.classList.toggle("active", el.dataset.mode === state.mode);
+  });
+}
+
+async function refresh() {
+  const btn = $("#btn-refresh");
+  const text = btn.querySelector(".btn-refresh-text");
+  const spinner = btn.querySelector(".spinner");
+  btn.disabled = true;
+  text.textContent = "Обновляется…";
+  spinner.classList.remove("hidden");
+  try {
+    const r = await fetch("/api/refresh", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ full: false }),
+    });
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}));
+      const tail = err.stderr ? "\n\n— stderr ——\n" + err.stderr : "";
+      alert("Ошибка обновления: " + (err.error || r.statusText) + tail);
+      return;
+    }
+    await load();
+  } finally {
+    btn.disabled = false;
+    text.textContent = "Обновить";
+    spinner.classList.add("hidden");
+  }
 }
 
 // ------------------------------------------------------------ filters
@@ -305,16 +376,36 @@ function wireDrawer() {
 
 // ------------------------------------------------------------ boot
 
+function wireModeAndRefresh() {
+  $("#mode-toggle").addEventListener("click", () => {
+    const next = state.mode === "openrouter" ? "mock" : "openrouter";
+    setMode(next);
+  });
+  $$(".mode-label").forEach((el) => {
+    el.addEventListener("click", () => setMode(el.dataset.mode));
+  });
+  $("#btn-refresh").addEventListener("click", refresh);
+}
+
 (async function () {
   wireFilters();
   wireSort();
   wireDrawer();
+  wireModeAndRefresh();
+
+  // Pull current server-side mode for the toggle
+  const srv = await fetchServerState();
+  if (srv) {
+    state.mode = srv.mode || "mock";
+    updateModeUI();
+  }
+
   try {
     await load();
   } catch (e) {
     $("#grid-body").innerHTML = `<tr><td colspan="10" class="empty">
       Не удалось загрузить inventory.json: ${escapeHtml(e.message)}.
-      Запустите <code>python radar.py --demo</code> сначала.
+      Запустите <code>python radar.py --demo</code> или нажмите «Обновить».
     </td></tr>`;
   }
 })();

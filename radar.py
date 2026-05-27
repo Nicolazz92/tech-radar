@@ -38,9 +38,10 @@ import score
 # ---------------------------------------------------------------- UI server
 
 def _serve_ui(port):
-    """Tiny HTTP server: serves ui/index.html + inventory.json on http://localhost:PORT."""
+    """Tiny HTTP server: serves ui/index.html + inventory.json + API endpoints."""
     import http.server
     import socketserver
+    import os  # noqa: F401 -- used in handler closure
 
     ui_dir = ROOT / "ui"
     inv_path = ROOT / "inventory.json"
@@ -48,9 +49,33 @@ def _serve_ui(port):
     if not (ui_dir / "index.html").exists():
         print(f"[serve] UI files missing at {ui_dir}")
         return 2
-    if not inv_path.exists():
-        print(f"[serve] inventory.json missing — run `python radar.py --demo` first")
-        return 2
+    # inventory.json is allowed to be missing — UI shows empty state + user can
+    # click "Обновить" to generate it.
+
+    cfg_path = ROOT / "config.json"
+
+    def _state_payload():
+        try:
+            cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+        except Exception:
+            cfg = {}
+        rcfg = cfg.get("ranker") or {}
+        inv = {}
+        if inv_path.exists():
+            try:
+                inv = json.loads(inv_path.read_text(encoding="utf-8"))
+            except Exception:
+                pass
+        stats = (inv.get("stats") or {})
+        return {
+            "mode": rcfg.get("mode", "mock"),
+            "model": rcfg.get("model"),
+            "openrouter_key_present": bool(os.environ.get("OPENROUTER_API_KEY")),
+            "ts": inv.get("ts"),
+            "items_total": stats.get("items_total", 0),
+            "ranked_count": stats.get("ranked_count", 0),
+            "cost_usd": ((stats.get("ranking_run") or {}).get("cost_usd")),
+        }
 
     class H(http.server.BaseHTTPRequestHandler):
         def log_message(self, fmt, *args):
@@ -68,6 +93,9 @@ def _serve_ui(port):
             self.end_headers()
             self.wfile.write(body)
 
+        def _send_json(self, status, obj):
+            return self._send(status, json.dumps(obj, ensure_ascii=False), "application/json")
+
         def do_GET(self):
             path = self.path.split("?", 1)[0]
             if path in ("/", "/index.html"):
@@ -77,8 +105,60 @@ def _serve_ui(port):
             if path == "/app.js":
                 return self._send(200, (ui_dir / "app.js").read_bytes(), "application/javascript")
             if path == "/inventory.json":
+                if not inv_path.exists():
+                    return self._send_json(404, {"error": "inventory.json not generated yet"})
                 return self._send(200, inv_path.read_bytes(), "application/json")
-            return self._send(404, "not found", "text/plain")
+            if path == "/api/state":
+                return self._send_json(200, _state_payload())
+            return self._send_json(404, {"error": "not found", "path": path})
+
+        def do_POST(self):
+            import os, subprocess
+            path = self.path.split("?", 1)[0]
+            length = int(self.headers.get("Content-Length") or 0)
+            try:
+                body = json.loads(self.rfile.read(length).decode("utf-8")) if length else {}
+            except Exception:
+                body = {}
+
+            if path == "/api/config":
+                mode = body.get("mode")
+                if mode not in ("mock", "openrouter"):
+                    return self._send_json(400, {"error": "mode must be 'mock' or 'openrouter'"})
+                if mode == "openrouter" and not os.environ.get("OPENROUTER_API_KEY"):
+                    return self._send_json(400, {
+                        "error": "OPENROUTER_API_KEY not set in environment",
+                        "hint": "export OPENROUTER_API_KEY=... and restart the server (or set in docker-compose .env)",
+                    })
+                cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+                cfg.setdefault("ranker", {})["mode"] = mode
+                cfg_path.write_text(json.dumps(cfg, ensure_ascii=False, indent=2), encoding="utf-8")
+                return self._send_json(200, {"mode": mode})
+
+            if path == "/api/refresh":
+                # By default refresh re-runs on the bundled demo inventory (fast, no
+                # network). Pass {"full": true} to run the full pipeline (clone + grep
+                # + GitHub fetch + LLM) — slow.
+                full = bool(body.get("full"))
+                cmd = [sys.executable, str(ROOT / "radar.py")]
+                if not full:
+                    cmd.append("--demo")
+                try:
+                    proc = subprocess.run(
+                        cmd, capture_output=True, text=True, cwd=str(ROOT),
+                        timeout=900, encoding="utf-8", errors="replace",
+                    )
+                except subprocess.TimeoutExpired:
+                    return self._send_json(500, {"error": "pipeline timeout (>15min)"})
+                if proc.returncode != 0:
+                    return self._send_json(500, {
+                        "error": "pipeline failed",
+                        "code": proc.returncode,
+                        "stderr": (proc.stderr or "")[-2000:],
+                    })
+                return self._send_json(200, _state_payload())
+
+            return self._send_json(404, {"error": "not found", "path": path})
 
     with socketserver.TCPServer(("0.0.0.0", port), H) as httpd:
         print(f"[serve] http://localhost:{port}   (Ctrl-C to stop)")
