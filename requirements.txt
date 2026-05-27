@@ -1,0 +1,3 @@
+# No third-party deps. Uses only Python stdlib (urllib, subprocess, json, csv, hashlib).
+# Real LLM mode hits OpenRouter via urllib.request — no httpx/requests needed.
+# Python 3.10+ recommended.

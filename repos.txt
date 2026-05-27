@@ -1,0 +1,8 @@
+# Group of related repositories — one project, multiple services.
+# Edit this list to point the radar at your own set.
+grafana/grafana
+grafana/loki
+grafana/tempo
+grafana/mimir
+grafana/k6
+grafana/alloy

@@ -1,0 +1,59 @@
+{
+  "_doc": "tech-radar config. Tweak label maps and formula weights without touching code.",
+
+  "ranker": {
+    "_doc": "LLM-ranker config. Set 'mode': 'mock' (deterministic heuristic) or 'openrouter' (real call).",
+    "mode": "mock",
+    "model": "qwen/qwen-turbo",
+    "openrouter_url": "https://openrouter.ai/api/v1/chat/completions",
+    "rank_prompt_language": "ru",
+    "batch_size": 20,
+    "max_cost_usd": 0.50,
+    "price_in_per_m": 0.033,
+    "price_out_per_m": 0.130
+  },
+
+  "scan": {
+    "_doc": "Inline-marker scanner: which markers + excluded paths.",
+    "markers": ["TODO", "FIXME", "HACK", "XXX"],
+    "exclude_dirs": ["vendor", "node_modules", "third_party", ".git", "docs", "testdata", "integration-tests", ".cache", ".work"],
+    "clone_depth": 50,
+    "max_excerpt_chars": 200,
+    "code_context_lines": 25
+  },
+
+  "github": {
+    "_doc": "GitHub API: labels of interest + per-issue cache TTL.",
+    "labels": ["tech-debt", "technical-debt", "refactor", "cleanup", "code-quality"],
+    "issues_cache_ttl_hours": 24,
+    "per_page": 100
+  },
+
+  "label_maps": {
+    "_doc": "GitHub labels → numeric scales. Adjust per project conventions.",
+    "priority": {
+      "priority/critical": 9, "priority/high": 6, "priority/medium": 3, "priority/low": 1,
+      "P0": 9, "P1": 6, "P2": 3, "P3": 1
+    },
+    "effort_hours": {
+      "effort/xs": 1, "effort/s": 4, "effort/m": 12, "effort/l": 40, "effort/xl": 100,
+      "size/xs": 1, "size/s": 4, "size/m": 12, "size/l": 40, "size/xl": 100
+    },
+    "business_value": {
+      "customer-impact": 9, "revenue-blocking": 9, "compliance": 9,
+      "nice-to-have": 1, "polish": 1
+    }
+  },
+
+  "formula": {
+    "_doc": "impact = (1 + links_count) * severity^2 / max(fix_cost_h, cost_floor). formula_version stamped in inventory.",
+    "version": "v1.1",
+    "cost_floor_h": 1
+  },
+
+  "render": {
+    "_doc": "Output: top-N in markdown + CSV. Russian column headers.",
+    "top_n": 30,
+    "columns_ru": ["#", "репо", "тип", "локатор", "приоритет", "крит.", "часы", "связи", "импакт", "обоснование"]
+  }
+}
