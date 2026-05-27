@@ -84,6 +84,128 @@ html, body {
   font-weight: 600;
 }
 
+/* === Info tooltip (next to "формула") === */
+.meta-item {
+  position: relative;
+}
+
+.info-tip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--bg-elev2);
+  border: 1px solid var(--border);
+  color: var(--text-mute);
+  font-size: 10px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: help;
+  padding: 0;
+  margin-left: 4px;
+  transition: color 120ms, border-color 120ms;
+}
+
+.info-tip:hover,
+.info-tip:focus-visible {
+  color: var(--accent);
+  border-color: var(--accent);
+  outline: none;
+}
+
+.tip-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 380px;
+  max-width: 460px;
+  background: var(--bg-elev2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px 10px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition: opacity 140ms ease, transform 140ms ease, visibility 0s linear 140ms;
+  z-index: 5;
+  text-align: left;
+  font-weight: normal;
+}
+
+.info-tip:hover + b + .tip-popover,
+.info-tip:focus-visible + b + .tip-popover,
+.tip-popover:hover {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+  transition: opacity 140ms ease, transform 140ms ease, visibility 0s;
+}
+
+.tip-popover::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  right: 14px;
+  width: 10px;
+  height: 10px;
+  background: var(--bg-elev2);
+  border-top: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+  transform: rotate(45deg);
+}
+
+.tip-formula {
+  display: block;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 7px 10px;
+  font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
+  font-size: 12px;
+  color: var(--accent-2);
+  letter-spacing: 0.01em;
+  margin-bottom: 10px;
+}
+
+.tip-list {
+  margin: 0 0 8px;
+  padding: 0 0 0 18px;
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.tip-list li {
+  margin-bottom: 4px;
+}
+
+.tip-list i {
+  color: var(--text-mute);
+  font-style: normal;
+}
+
+.tip-foot {
+  font-size: 11px;
+  color: var(--text-mute);
+  border-top: 1px solid var(--border);
+  padding-top: 7px;
+  line-height: 1.5;
+}
+
+.tip-foot code {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 10.5px;
+  color: var(--info);
+}
+
 /* === Charts === */
 .charts {
   display: grid;
