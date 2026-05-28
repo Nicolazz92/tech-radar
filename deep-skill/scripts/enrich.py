@@ -10,7 +10,12 @@ For each item in raw_items.json:
   - compute blast_radius: isolated|one_caller|fan_out
 """
 from __future__ import annotations
-import datetime, json, pathlib, subprocess
+import datetime, json, pathlib, subprocess, sys
+
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except Exception:
+    pass
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 WORK = ROOT / "work"

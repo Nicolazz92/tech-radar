@@ -18,9 +18,21 @@ out_of_scope:
 1. **Подтвердить рабочую папку**: `cd <repo>/tech-radar/deep-skill`
 2. **Прочитать `repos.txt`** в текущей папке (или один уровнем выше — в `../repos.txt` от tech-radar)
 3. **Установить deps** если первый запуск: `pip install -r requirements.txt`
-   (tree-sitter, tree-sitter-go)
+   (tree-sitter ≥0.25, tree-sitter-go — нужен Query()/QueryCursor API)
 4. **fetch**: `bash scripts/fetch.sh` — clone --depth=200 каждый репо в `./work/`.
    Если репо уже есть — `git fetch + git reset --hard origin/<default>`.
+
+   **Первый/проверочный прогон — сначала scoped.** Не клонируй сразу весь набор
+   (там `grafana/grafana` — сотни МБ + tree-sitter по тысячам .go). Положи 1-2
+   мелких репо (напр. tempo, k6) в отдельный файл и прогони весь pipeline через
+   `REPOS_FILE`, убедись что стадии дают выхлоп, потом расширяй:
+   ```bash
+   REPOS_FILE="$PWD/repos.firstrun.txt" bash scripts/fetch.sh
+   REPOS_FILE="$PWD/repos.firstrun.txt" python scripts/sweep.py
+   REPOS_FILE="$PWD/repos.firstrun.txt" python scripts/analyze.py
+   ```
+   `fetch.sh`, `sweep.py`, `analyze.py` все уважают `REPOS_FILE`; `enrich.py`
+   берёт набор репо из `raw_items.json`, так что отдельного env ему не нужно.
 5. **sweep**: `python scripts/sweep.py` — grep маркеров → `output/raw_items.json`
 6. **analyze**: `python scripts/analyze.py` — для всех .go файлов:
    - tree-sitter-go AST → enclosing function каждой строки, exported-ness, signature
@@ -66,6 +78,20 @@ out_of_scope:
 - Не редактировать tech-radar/* код — скилл только пишет в `deep-skill/output/`
 - Не очищать `work/` между запусками — там cache shallow-клонов, переиспользуется
 - Не делать ranking каждый раз если содержимое не менялось — кэш по `<repo>@<sha>`
+
+## Окружение и подводные камни (проверено на Windows)
+
+- **Кодировка**: скрипты сами форсят utf-8 на stdout/stdin
+  (`sys.std*.reconfigure`), так что `PYTHONUTF8=1` ставить НЕ нужно — кириллица
+  в логах и в pipe `rank.py --write-scores` не бьётся о cp1251-консоль.
+- **Без внешнего grep**: `sweep.py` обходит файлы на чистом Python (внешний
+  `grep` на Windows из Python падает с `WinError 267`).
+- **Без внешнего zip**: `pack.sh` использует `zip` если он есть, иначе fallback
+  на python `zipfile` — архив соберётся в любом случае.
+- **`blast_radius`**: будет `isolated` для ВСЕХ items, если в scope нет репо,
+  которые импортируют друг друга. Это не баг — `fan_out`/`one_caller` появляются
+  только когда в наборе есть взаимные import-рёбра (см. `import_graph.json`).
+  Для осмысленного cross-repo сигнала держи в scope ≥2 связанных репо.
 
 ## Output schema (краткий контракт)
 

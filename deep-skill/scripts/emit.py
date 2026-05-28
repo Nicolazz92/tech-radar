@@ -13,7 +13,12 @@ Compute impact (same formula v1.1 as serverside):
   impact = (1 + len(linked_repos)) * severity² / max(fix_cost_h, 1)
 """
 from __future__ import annotations
-import collections, datetime, json, pathlib
+import collections, datetime, json, pathlib, sys
+
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except Exception:
+    pass
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "output"

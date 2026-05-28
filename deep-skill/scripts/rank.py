@@ -22,7 +22,15 @@ Workflow inside a Claude Code session:
 Or simpler: rank.py prints chunk-by-chunk to stdout and the agent appends.
 """
 from __future__ import annotations
-import argparse, json, pathlib
+import argparse, json, pathlib, sys
+
+# Rankings carry Cyrillic; force utf-8 on stdin/stdout so --write-scores doesn't
+# mangle piped JSON on a cp1251 Windows console (no need to set PYTHONUTF8).
+for _stream in ("stdin", "stdout"):
+    try:
+        getattr(sys, _stream).reconfigure(encoding="utf-8")
+    except Exception:
+        pass
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "output"

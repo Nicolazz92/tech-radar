@@ -5,12 +5,21 @@ Same shape as serverside tech-radar/sweep_inline.py but operates on the
 local work/ dir of deep-skill. Writes output/raw_items.json.
 """
 from __future__ import annotations
-import hashlib, json, pathlib, re, subprocess
+import hashlib, json, os, pathlib, re, sys
+
+# Windows consoles default to cp1251 here; force utf-8 so arrows/dashes in
+# log lines don't raise UnicodeEncodeError mid-run.
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except Exception:
+    pass
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 WORK = ROOT / "work"
 OUTPUT = ROOT / "output"
-REPOS_FILE = ROOT / "repos.txt"
+# Honor REPOS_FILE env (same as fetch.sh) so a scoped run stays coherent across
+# every stage instead of sweeping the full default list and "skipping" the rest.
+REPOS_FILE = pathlib.Path(os.environ.get("REPOS_FILE") or (ROOT / "repos.txt"))
 
 MARKERS = ["TODO", "FIXME", "HACK", "XXX"]
 EXCLUDE = ["vendor", "node_modules", "third_party", ".git", "docs",
@@ -34,44 +43,40 @@ def grep_repo(repo):
     short = _short(repo)
     wd = WORK / short
     if not wd.exists():
-        print(f"[sweep] {repo}: no clone at {wd} — skipping")
-        return []
-    pattern = r"\b(" + "|".join(MARKERS) + r")\b"
-    cmd = ["grep", "-rnE", pattern, "--include=*.go"]
-    for d in EXCLUDE:
-        cmd.extend(["--exclude-dir", d])
-    cmd.append(".")
-    try:
-        p = subprocess.run(cmd, cwd=str(wd), capture_output=True, text=True,
-                           timeout=180, errors="replace")
-    except Exception as e:
-        print(f"[sweep] {repo}: grep failed — {e}")
+        print(f"[sweep] {repo}: no clone at {wd} -- skipping")
         return []
 
+    mrx = re.compile(r"\b(TODO|FIXME|HACK|XXX)\b")
     out = []
-    rx = re.compile(r"^\./(?P<path>[^:]+):(?P<line>\d+):(?P<rest>.*)$")
-    mrx = re.compile(r"\b(TODO|FIXME|HACK|XXX)\b", re.I)
-    for raw in p.stdout.splitlines():
-        m = rx.match(raw)
-        if not m:
-            continue
-        path = m.group("path")
-        line = int(m.group("line"))
-        excerpt = m.group("rest").strip()[:EXCERPT_CAP]
-        mm = mrx.search(excerpt)
-        marker = mm.group(1).upper() if mm else "TODO"
-        locator = f"{path}:{line}"
-        item_id = hashlib.sha256(
-            f"{repo}\0inline_marker\0{locator}".encode()).hexdigest()[:16]
-        out.append({
-            "id": item_id,
-            "repo": repo,
-            "kind": "inline_marker",
-            "marker": marker,
-            "locator": locator,
-            "title_or_excerpt": excerpt,
-            "labels": [],
-        })
+    for dirpath, dirnames, filenames in os.walk(wd):
+        dirnames[:] = [d for d in dirnames if d not in EXCLUDE]
+        for fn in filenames:
+            if not fn.endswith(".go"):
+                continue
+            fpath = pathlib.Path(dirpath) / fn
+            try:
+                text = fpath.read_text(encoding="utf-8", errors="replace")
+            except OSError:
+                continue
+            for lineno, raw_line in enumerate(text.splitlines(), start=1):
+                mm = mrx.search(raw_line)
+                if not mm:
+                    continue
+                rel = fpath.relative_to(wd).as_posix()
+                excerpt = raw_line.strip()[:EXCERPT_CAP]
+                marker = mm.group(1).upper()
+                locator = f"{rel}:{lineno}"
+                item_id = hashlib.sha256(
+                    f"{repo}\0inline_marker\0{locator}".encode()).hexdigest()[:16]
+                out.append({
+                    "id": item_id,
+                    "repo": repo,
+                    "kind": "inline_marker",
+                    "marker": marker,
+                    "locator": locator,
+                    "title_or_excerpt": excerpt,
+                    "labels": [],
+                })
     return out
 
 

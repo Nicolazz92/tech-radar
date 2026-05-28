@@ -13,12 +13,18 @@ Outputs:
   output/call_refs.json      func → callers index (within and cross repo)
 """
 from __future__ import annotations
-import json, pathlib, re, sys
+import json, os, pathlib, re, sys
+
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except Exception:
+    pass
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 WORK = ROOT / "work"
 OUTPUT = ROOT / "output"
-REPOS_FILE = ROOT / "repos.txt"
+# Honor REPOS_FILE env (same as fetch.sh/sweep.py) for coherent scoped runs.
+REPOS_FILE = pathlib.Path(os.environ.get("REPOS_FILE") or (ROOT / "repos.txt"))
 
 
 def _load_repos():
@@ -118,14 +124,17 @@ def main():
 
     # Stage 2 — symbol_table (tree-sitter)
     Language, Parser, GO = _import_tree_sitter()
+    from tree_sitter import Query, QueryCursor
     parser = Parser(GO)
 
-    fn_query = GO.query(
+    fn_query = Query(
+        GO,
         """
         (function_declaration name: (identifier) @name) @fn
         (method_declaration name: (field_identifier) @name) @fn
-        """
+        """,
     )
+    fn_cursor = QueryCursor(fn_query)
 
     symbol_table = {repo: {} for repo in repos}
     for repo in repos:
@@ -141,18 +150,22 @@ def main():
             except Exception:
                 continue
             funcs = []
-            captures = fn_query.captures(tree.root_node)
-            # captures is {name: [nodes]} dict
-            fn_nodes = captures.get("fn", [])
-            name_nodes = captures.get("name", [])
-            # walk them in parallel order
-            for fn_node, name_node in zip(fn_nodes, name_nodes):
+            # matches() keeps each function's @fn and @name in the same group;
+            # captures() returns them as two separately-ordered lists that don't
+            # zip reliably (corrupts the name<->signature pairing).
+            for _pattern_idx, caps in fn_cursor.matches(tree.root_node):
+                fn_nodes = caps.get("fn", [])
+                name_nodes = caps.get("name", [])
+                if not fn_nodes or not name_nodes:
+                    continue
+                fn_node = fn_nodes[0]
+                name_node = name_nodes[0]
                 name = src[name_node.start_byte:name_node.end_byte].decode("utf-8", "replace")
                 line_start = fn_node.start_point[0] + 1
                 line_end = fn_node.end_point[0] + 1
-                # signature = first line
+                # signature = first line (strip trailing CR from CRLF files)
                 sig = src[fn_node.start_byte:fn_node.start_byte + 200] \
-                    .decode("utf-8", "replace").split("\n", 1)[0]
+                    .decode("utf-8", "replace").split("\n", 1)[0].rstrip("\r")
                 exported = name and name[:1].isupper()
                 funcs.append({
                     "name": name,
@@ -162,7 +175,7 @@ def main():
                     "signature": sig,
                 })
             if funcs:
-                rel = str(go.relative_to(d))
+                rel = go.relative_to(d).as_posix()
                 symbol_table[repo][rel] = funcs
                 n_funcs += len(funcs)
         print(f"[analyze] {repo}: {n_funcs} functions")
