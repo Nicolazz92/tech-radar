@@ -138,7 +138,10 @@ async function refresh() {
     const r = await fetch("/api/refresh", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ full: false }),
+      // Full pipeline by default: real GitHub fetch + git clone + grep + LLM.
+      // Takes 3-8 min depending on network and rank size. Was {full:false}
+      // earlier — that ran demo-only on bundled 20 items and surprised users.
+      body: JSON.stringify({ full: true, fresh: false }),
     });
     if (!r.ok) {
       const err = await r.json().catch(() => ({}));
