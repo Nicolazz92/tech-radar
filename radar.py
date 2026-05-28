@@ -161,6 +161,69 @@ def _serve_ui(port):
                 cfg_path.write_text(json.dumps(cfg, ensure_ascii=False, indent=2), encoding="utf-8")
                 return self._send_json(200, {"mode": mode})
 
+            if path == "/api/import":
+                # Accept a pre-computed inventory.json (e.g. produced by the
+                # local `deep-skill/` pipeline). Body is either:
+                #   - raw JSON (Content-Type: application/json)
+                #   - ZIP containing an inventory.json or inventory.deep.json
+                # The uploaded inventory is validated against invariants and
+                # written to the CURRENT mode's file (so toggle to openrouter
+                # before importing if you want it there).
+                import io, zipfile
+                content_type = (self.headers.get("Content-Type") or "").lower()
+                length = int(self.headers.get("Content-Length") or 0)
+                if length <= 0 or length > 50 * 1024 * 1024:
+                    return self._send_json(400, {
+                        "error": "body must be 1 byte .. 50 MB",
+                    })
+                raw = self.rfile.read(length)
+
+                # ZIP if Content-Type says so OR magic bytes match
+                is_zip = "zip" in content_type or raw[:4] == b"PK\x03\x04"
+                if is_zip:
+                    try:
+                        zf = zipfile.ZipFile(io.BytesIO(raw))
+                    except zipfile.BadZipFile as e:
+                        return self._send_json(400, {"error": f"bad zip: {e}"})
+                    names = zf.namelist()
+                    cand = next((n for n in names
+                                 if n.endswith("inventory.deep.json")
+                                 or n.endswith("inventory.json")), None)
+                    if not cand:
+                        return self._send_json(400, {
+                            "error": "zip has no inventory*.json inside",
+                            "names": names[:30],
+                        })
+                    inv_bytes = zf.read(cand)
+                else:
+                    inv_bytes = raw
+
+                try:
+                    inv = json.loads(inv_bytes.decode("utf-8"))
+                except Exception as e:
+                    return self._send_json(400, {
+                        "error": f"invalid JSON: {type(e).__name__}: {e}"
+                    })
+
+                violations = invariants.check(inv)
+                if violations:
+                    return self._send_json(400, {
+                        "error": "invariants check failed",
+                        "violations": violations[:10],
+                    })
+
+                cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+                mode = (cfg.get("ranker") or {}).get("mode", "mock")
+                target = _inv_path_for_mode(mode)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                tmp = target.with_suffix(".tmp")
+                tmp.write_text(json.dumps(inv, ensure_ascii=False, indent=2),
+                               encoding="utf-8")
+                tmp.replace(target)
+                print(f"[import] wrote {target.name} ({len(inv_bytes)} bytes)",
+                      flush=True)
+                return self._send_json(200, _state_payload())
+
             if path == "/api/refresh":
                 # By default refresh re-runs on the bundled demo inventory (fast, no
                 # network). Pass {"full": true} to run the full pipeline (clone + grep

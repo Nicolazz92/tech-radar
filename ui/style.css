@@ -141,6 +141,27 @@ html, body {
 .btn-refresh:hover { background: #1c8a30; border-color: #1c8a30; }
 .btn-refresh:disabled { opacity: 0.55; cursor: not-allowed; }
 
+/* import button — secondary action, less prominent than green refresh */
+.btn-import {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-mute);
+  padding: 7px 14px;
+  border-radius: 7px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  transition: color 140ms, border-color 140ms;
+}
+
+.btn-import:hover {
+  color: var(--text);
+  border-color: var(--accent);
+}
+
+.btn-import:disabled { opacity: 0.55; cursor: not-allowed; }
+
 .spinner {
   display: inline-block;
   width: 12px;

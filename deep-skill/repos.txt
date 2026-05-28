@@ -1,0 +1,9 @@
+# default: тот же набор что в tech-radar/repos.txt
+# можно переопределить — деп-скилл читает СВОЙ файл первым,
+# если его нет → подхватит из родительской tech-radar/
+grafana/grafana
+grafana/loki
+grafana/tempo
+grafana/mimir
+grafana/k6
+grafana/alloy

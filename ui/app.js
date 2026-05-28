@@ -382,6 +382,35 @@ function wireDrawer() {
 
 // ------------------------------------------------------------ boot
 
+async function importInventory(file) {
+  const btn = $("#btn-import");
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = "Загружаю…";
+  try {
+    const ct = file.name.toLowerCase().endsWith(".zip")
+      ? "application/zip"
+      : "application/json";
+    const r = await fetch("/api/import", {
+      method: "POST",
+      headers: { "Content-Type": ct },
+      body: file,
+    });
+    if (!r.ok) {
+      const err = await r.json().catch(() => ({}));
+      const v = (err.violations || []).slice(0, 3).join("\n  • ");
+      alert("Импорт отклонён: " + (err.error || r.statusText) +
+        (v ? "\n\nИнварианты:\n  • " + v : ""));
+      return;
+    }
+    await load();
+    alert("Импортировано в режим: " + state.mode);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = orig;
+  }
+}
+
 function wireModeAndRefresh() {
   $("#mode-toggle").addEventListener("click", () => {
     const next = state.mode === "openrouter" ? "mock" : "openrouter";
@@ -391,6 +420,14 @@ function wireModeAndRefresh() {
     el.addEventListener("click", () => setMode(el.dataset.mode));
   });
   $("#btn-refresh").addEventListener("click", refresh);
+
+  // Import: hidden file input + visible button that proxies clicks
+  $("#btn-import").addEventListener("click", () => $("#import-file").click());
+  $("#import-file").addEventListener("change", (e) => {
+    const f = e.target.files && e.target.files[0];
+    if (f) importInventory(f);
+    e.target.value = "";  // allow re-selecting same file
+  });
 }
 
 (async function () {
