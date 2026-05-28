@@ -270,10 +270,12 @@ def _stage_rank(items, cfg, top_n, work_root, max_cost_usd):
 
     candidates = sorted(items, key=baseline, reverse=True)[:top_n]
     # Attach code_context for inline markers (helps real LLM; mock ignores it)
+    code_lines = scan.get("code_context_lines", 25)
+    code_max = scan.get("code_context_max_chars", 2000)
     for it in candidates:
         if it.get("kind") == "inline_marker":
             it["code_context"] = fetch_code_context(
-                it, work_root, scan["code_context_lines"], 2000,
+                it, work_root, code_lines, code_max,
             )
 
     batch_size = rcfg.get("batch_size", 20)

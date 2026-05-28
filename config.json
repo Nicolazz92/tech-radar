@@ -33,7 +33,8 @@
     ],
     "clone_depth": 50,
     "max_excerpt_chars": 200,
-    "code_context_lines": 25
+    "code_context_lines": 50,
+    "code_context_max_chars": 4000
   },
   "github": {
     "_doc": "GitHub API: labels of interest + per-issue cache TTL. NB: matched with OR-semantics — issue passes if it has ANY of these labels.",
