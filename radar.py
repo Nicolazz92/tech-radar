@@ -53,8 +53,12 @@ def _serve_ui(port):
     # no re-run of the LLM pipeline. Both files are allowed to be missing on
     # first start; UI shows an empty state until "Обновить" is clicked.
 
+    # Per-mode inventories live under /app/state/ so the radar-state docker
+    # volume persists them across image rebuilds. Was ROOT/inventory.<mode>.json
+    # which lived in the container's writable layer and got wiped on each
+    # `docker compose up --build`.
     def _inv_path_for_mode(mode):
-        return ROOT / f"inventory.{mode}.json"
+        return ROOT / "state" / f"inventory.{mode}.json"
 
     cfg_path = ROOT / "config.json"
 
@@ -458,10 +462,11 @@ def main():
             print("  -", v)
         return 2
 
-    # Per-mode atomic write: each mock/openrouter run lives in its own
-    # inventory file so the UI toggle can swap between them without re-running.
+    # Per-mode atomic write under /app/state/ (volume-backed, survives rebuilds).
     mode = cfg["ranker"].get("mode", "mock")
-    inv_path = ROOT / f"inventory.{mode}.json"
+    state_dir = ROOT / "state"
+    state_dir.mkdir(parents=True, exist_ok=True)
+    inv_path = state_dir / f"inventory.{mode}.json"
     tmp_path = inv_path.with_suffix(".tmp")
     tmp_path.write_text(
         json.dumps(inv, ensure_ascii=False, indent=2), encoding="utf-8")

@@ -51,6 +51,7 @@ TAR_EXCLUDES=(
   --exclude=inventory.json
   --exclude=inventory.mock.json
   --exclude=inventory.openrouter.json
+  --exclude=state
   --exclude=report.md
   --exclude=report.csv
 )

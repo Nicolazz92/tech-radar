@@ -23,7 +23,7 @@ RUN useradd -m -u 1000 radar
 #   first volume creation Docker preserves the image's ownership of the path,
 #   so we pre-create them radar-owned. Otherwise the volume defaults to root
 #   and radar can't write GitHub issue cache or shallow clones into them.
-RUN mkdir -p /app /app/.cache /app/.work \
+RUN mkdir -p /app /app/.cache /app/.work /app/state \
  && chown -R radar:radar /app
 WORKDIR /app
 

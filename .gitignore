@@ -1,5 +1,6 @@
 .cache/
 .work/
+state/
 __pycache__/
 *.pyc
 .venv/
