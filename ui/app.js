@@ -119,12 +119,8 @@ async function setMode(mode) {
 }
 
 function updateModeUI() {
-  const toggle = $("#mode-toggle");
-  const isOpenrouter = state.mode === "openrouter";
-  toggle.setAttribute("aria-checked", isOpenrouter ? "true" : "false");
-  $$(".mode-label").forEach((el) => {
-    el.classList.toggle("active", el.dataset.mode === state.mode);
-  });
+  const sel = $("#source-select");
+  if (sel && state.mode) sel.value = state.mode;
 }
 
 async function refresh() {
@@ -403,8 +399,14 @@ async function importInventory(file) {
         (v ? "\n\nИнварианты:\n  • " + v : ""));
       return;
     }
+    // Server stores the upload in the dedicated 'import' slot and makes it the
+    // active source. Reflect that in the dropdown, then reload the inventory.
+    const srv = await r.json().catch(() => ({}));
+    state.mode = srv.mode || "import";
+    updateModeUI();
     await load();
-    alert("Импортировано в режим: " + state.mode);
+    alert("Импортировано — источник переключён на «import» (" +
+      (srv.items_total ?? "?") + " элементов)");
   } finally {
     btn.disabled = false;
     btn.textContent = orig;
@@ -412,12 +414,14 @@ async function importInventory(file) {
 }
 
 function wireModeAndRefresh() {
-  $("#mode-toggle").addEventListener("click", () => {
-    const next = state.mode === "openrouter" ? "mock" : "openrouter";
-    setMode(next);
-  });
-  $$(".mode-label").forEach((el) => {
-    el.addEventListener("click", () => setMode(el.dataset.mode));
+  // Source dropdown: switching applies the chosen source on change. If the
+  // switch is rejected (e.g. openrouter without an API key), revert the
+  // <select> back to the actual active source so UI stays truthful.
+  $("#source-select").addEventListener("change", async (e) => {
+    const chosen = e.target.value;
+    const prev = state.mode;
+    const ok = await setMode(chosen);
+    if (!ok) e.target.value = prev || "mock";
   });
   $("#btn-refresh").addEventListener("click", refresh);
 

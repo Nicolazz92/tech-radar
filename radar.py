@@ -141,16 +141,25 @@ def _serve_ui(port):
         def do_POST(self):
             import os, subprocess
             path = self.path.split("?", 1)[0]
+            # Read the request body EXACTLY ONCE. The stream is not seekable, so
+            # any handler that re-reads it (e.g. /api/import did `self.rfile.read`
+            # a second time) blocks forever on the already-drained socket until
+            # the client times out — that was the "import hangs / never shows"
+            # bug. JSON endpoints parse `raw`; binary uploads use `raw` directly.
+            MAX_BODY = 50 * 1024 * 1024
             length = int(self.headers.get("Content-Length") or 0)
+            if length > MAX_BODY:
+                return self._send_json(413, {"error": "body too large (>50MB)"})
+            raw = self.rfile.read(length) if length > 0 else b""
             try:
-                body = json.loads(self.rfile.read(length).decode("utf-8")) if length else {}
+                body = json.loads(raw.decode("utf-8")) if raw else {}
             except Exception:
                 body = {}
 
             if path == "/api/config":
                 mode = body.get("mode")
-                if mode not in ("mock", "openrouter"):
-                    return self._send_json(400, {"error": "mode must be 'mock' or 'openrouter'"})
+                if mode not in ("mock", "openrouter", "import"):
+                    return self._send_json(400, {"error": "mode must be 'mock', 'openrouter' or 'import'"})
                 if mode == "openrouter" and not os.environ.get("OPENROUTER_API_KEY"):
                     return self._send_json(400, {
                         "error": "OPENROUTER_API_KEY not set in environment",
@@ -167,16 +176,13 @@ def _serve_ui(port):
                 #   - raw JSON (Content-Type: application/json)
                 #   - ZIP containing an inventory.json or inventory.deep.json
                 # The uploaded inventory is validated against invariants and
-                # written to the CURRENT mode's file (so toggle to openrouter
-                # before importing if you want it there).
+                # written to the dedicated 'import' source slot, then that slot
+                # is made the active source so it shows immediately. mock /
+                # openrouter inventories are left untouched.
                 import io, zipfile
                 content_type = (self.headers.get("Content-Type") or "").lower()
-                length = int(self.headers.get("Content-Length") or 0)
-                if length <= 0 or length > 50 * 1024 * 1024:
-                    return self._send_json(400, {
-                        "error": "body must be 1 byte .. 50 MB",
-                    })
-                raw = self.rfile.read(length)
+                if len(raw) <= 0:
+                    return self._send_json(400, {"error": "empty body"})
 
                 # ZIP if Content-Type says so OR magic bytes match
                 is_zip = "zip" in content_type or raw[:4] == b"PK\x03\x04"
@@ -212,16 +218,19 @@ def _serve_ui(port):
                         "violations": violations[:10],
                     })
 
-                cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
-                mode = (cfg.get("ranker") or {}).get("mode", "mock")
-                target = _inv_path_for_mode(mode)
+                target = _inv_path_for_mode("import")
                 target.parent.mkdir(parents=True, exist_ok=True)
                 tmp = target.with_suffix(".tmp")
                 tmp.write_text(json.dumps(inv, ensure_ascii=False, indent=2),
                                encoding="utf-8")
                 tmp.replace(target)
-                print(f"[import] wrote {target.name} ({len(inv_bytes)} bytes)",
-                      flush=True)
+                # Make 'import' the active source so the upload shows at once.
+                cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
+                cfg.setdefault("ranker", {})["mode"] = "import"
+                cfg_path.write_text(json.dumps(cfg, ensure_ascii=False, indent=2),
+                                    encoding="utf-8")
+                print(f"[import] wrote {target.name} ({len(inv_bytes)} bytes), "
+                      f"switched active source to 'import'", flush=True)
                 return self._send_json(200, _state_payload())
 
             if path == "/api/refresh":

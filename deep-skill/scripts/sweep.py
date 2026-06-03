@@ -46,7 +46,10 @@ def grep_repo(repo):
         print(f"[sweep] {repo}: no clone at {wd} -- skipping")
         return []
 
-    mrx = re.compile(r"\b(TODO|FIXME|HACK|XXX)\b")
+    # Negative lookbehind on `.`/word-char drops code calls like context.TODO(),
+    # which are an idiomatic Go empty-context placeholder, NOT a tech-debt marker.
+    # Without this they dominate the ranking (every `context.TODO()` in tests).
+    mrx = re.compile(r"(?<![.\w])(TODO|FIXME|HACK|XXX)\b")
     out = []
     for dirpath, dirnames, filenames in os.walk(wd):
         dirnames[:] = [d for d in dirnames if d not in EXCLUDE]

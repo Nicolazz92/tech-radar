@@ -81,6 +81,20 @@ def find_enclosing_fn(symbol_table, repo, locator):
     return None
 
 
+def _is_test_file(locator):
+    """True for Go test files (path ends with _test.go).
+
+    Test files are compiled only for `go test` and are NEVER imported by other
+    packages, so the repo-level importer signal must not grant them cross-repo
+    blast radius. Without this, a `//TODO` inside some `Xxx_test.go` in the
+    dependency-hub repo (loki) inherits fan_out and monopolizes the top-N,
+    which is a false positive (v0.0.1 importer signal is repo-level, not
+    function-level).
+    """
+    path = locator.rsplit(":", 1)[0] if ":" in locator else locator
+    return path.endswith("_test.go")
+
+
 def cross_repo_callers_from_imports(import_graph, repo):
     """Coarse approximation: list of repos that import THIS repo's module.
 
@@ -120,12 +134,17 @@ def main():
         importers = cross_repo_callers_from_imports(import_graph, it["repo"])
         age, author = git_blame(it["repo"], it["locator"])
 
+        # A marker inside a _test.go file is not reachable from other repos:
+        # zero its effective importers so it can't inherit cross-repo blast
+        # radius from the repo-level import edge.
+        effective_importers = [] if _is_test_file(it["locator"]) else importers
+
         enrichment = {
             "enclosing_function": enclosing,
-            "cross_repo_importers": importers,
+            "cross_repo_importers": effective_importers,
             "marker_age_days": age,
             "introduced_by": author,
-            "blast_radius": blast_radius(enclosing, importers),
+            "blast_radius": blast_radius(enclosing, effective_importers),
         }
         enriched.append({**it, "enrichment": enrichment})
 
