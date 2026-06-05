@@ -59,9 +59,12 @@ def main():
             cri = score.get("cross_repo_impact") or []
             enriched["severity"] = sev if sev in (1, 3, 9) else None
             enriched["fix_cost_h"] = cost if isinstance(cost, (int, float)) and cost > 0 else None
-            enriched["rationale"] = (score.get("rationale") or "")[:240]
-            enriched["description"] = (score.get("description") or "")[:600]
-            enriched["priority_argument"] = (score.get("priority_argument") or "")[:600]
+            enriched["rationale"] = (score.get("rationale") or "")[:280]
+            enriched["description"] = (score.get("description") or "")[:1000]
+            enriched["priority_argument"] = (score.get("priority_argument") or "")[:800]
+            # canonical schema (UI/app.js + render.py read `links`); keep
+            # linked_repos as an alias for any older consumer.
+            enriched["links"] = cri
             enriched["linked_repos"] = cri
             enriched["links_count"] = len(cri)
             enriched["impact"] = compute_impact(
@@ -79,6 +82,7 @@ def main():
             enriched["severity"] = None
             enriched["fix_cost_h"] = None
             enriched["impact"] = None
+            enriched["links"] = []
             enriched["linked_repos"] = []
             enriched["links_count"] = 0
         items.append(enriched)
